@@ -20,7 +20,8 @@ INSTALL_LIB_DIR=${exec_prefix}/lib
 INSTALL_INCLUDE_DIR=${prefix}/include
 INSTALL_MAN_DIR=${datarootdir}/man
 
-OBJS = compiler.o compiler_scan.o compiler_gram.o compiler_node.o 
+OBJS = compiler.o compiler_scan.o compiler_gram.o compiler_node.o \
+	compiler_cgen.o
 
 CFLAGS += -O1 -fPIC 
 

@@ -1,6 +1,6 @@
-/* xclnm_node.h
+/* compiler_node.h
  *
- * Copyright (c) 2008-2010 Brown Deer Technology, LLC.  All Rights Reserved.
+ * Copyright (c) 2017 Brown Deer Technology, LLC.  All Rights Reserved.
  *
  * This software was developed by Brown Deer Technology, LLC.
  * For more information contact info@browndeertechnology.com
@@ -24,60 +24,190 @@
 /*
  * Defines the nodes used to for a tree representation of the assembly
  * code.  The style/design follows that used in PCC (Portable C Compiler),
- * but is much simpler - there is much less to represent in assembly.
+ * but is much simpler.
  */
 
 /* DAR */
 
-#ifndef _XAS_NODE_H
-#define _XAS_NODE_H
+#ifndef _COMPILER_NODE_H
+#define _COMPILER_NODE_H
 
 #include <stdio.h>
+
+typedef enum {
+	N_IDENTIFIER = 1,
+	N_INTEGER_CONSTANT,
+	N_FLOAT_CONSTANT,
+	N_STRING_CONSTANT,
+	N_EXPRESSION,
+	N_EXPRESSION_STATEMENT,
+	N_DECLARATION_STATEMENT,
+	N_ASSIGNMENT_STATEMENT,
+	N_PRINT_STATEMENT,
+	N_BLOCK,
+	N_PROGRAM
+} node_type_t;
+
+typedef enum {
+	OP_ADD = 1,
+	OP_SUB,
+	OP_MUL,
+	OP_DIV,
+	OP_MOD,
+	OP_MAX,
+	OP_MIN,
+	OP_INV,
+	OP_POW2,
+	OP_SQRT,
+	OP_AND,
+	OP_OR,
+	OP_XOR,
+	OP_NOT,
+	OP_EQ,
+	OP_NEQ
+} op_type_t;
+
+typedef enum {
+	T_VOID,
+	T_BOOLEAN,
+	T_INTEGER,
+	T_FLOAT,
+	T_STRING,
+	T_STRUCT,
+	T_VOID_ARRAY,
+	T_BOOLEAN_ARRAY,
+	T_INTEGER_ARRAY,
+	T_FLOAT_ARRAY,
+	T_STRING_ARRAY,
+	T_STRUCT_ARRAY
+} type_t;
 
 typedef struct node_struct {
 
 	struct node_struct* prev;
 	struct node_struct* next;
-	int ntyp;
+	node_type_t ntyp;
 
 	union {
 
+		/***
+		 *** primitives
+		 ***/
+
 		struct {
-			int flags;
-			struct node_struct* rettype;
 			int sym;
+			type_t typ;
+		} _n_identifier;
+
+		struct {
+			long long val;
+		} _n_integer_constant;
+
+		struct {
+			float val;
+		} _n_float_constant;
+
+		struct {
+			char* str;
+		} _n_string_constant;
+
+	
+		/***
+		 *** expressions
+		 ***/
+
+		struct {
+			op_type_t op;
 			struct node_struct* args;
-		} _n_info_func;
+		} _n_expression;
+
+
+		/***
+		 *** statememnts
+		 ***/
 
 		struct {
-			struct node_struct* argtype;
 			int sym;
-		} _n_info_arg;
+			type_t typ;
+			struct node_struct* init;
+			int symmetric;
+			int shared;
+		} _n_declaration_statement;
 
 		struct {
-			int datatype;
-			int addrspace;
-			int ptrc;
-			int vecn;
-			int arrn;
-		} _n_info_type;
+			struct node_struct* expr;
+		} _n_expression_statement;
+
+		struct {
+			struct node_struct* target;
+			struct node_struct* expr;
+		} _n_assignment_statement;
+
+		struct {
+			struct node_struct* args;
+		} _n_print_statement;
+
+
+		/***
+		 *** block
+		 ***/
+
+		struct {
+			struct node_struct* stmts;
+		} _n_block;
+
+
+		/***
+		 *** program
+		 ***/
+
+		struct {
+			struct node_struct* block;
+		} _n_program;
 
 	} _n_info;
 
 } node_t;
 
-#define NTYP_EMPTY		0x0
-#define NTYP_FUNC			0x3
-#define NTYP_ARG			0x4
-#define NTYP_TYPE			0x5
+#define n_ident 			_n_info._n_identifier
+#define n_integer 		_n_info._n_integer_constant
+#define n_float 			_n_info._n_float_constant
+#define n_string 			_n_info._n_string_constant
+#define n_expr				_n_info._n_expression
+#define n_decl_stmt		_n_info._n_declaration_statement
+#define n_expr_stmt		_n_info._n_expression_statement
+#define n_assign_stmt	_n_info._n_assignment_statement
+#define n_print_stmt		_n_info._n_print_statement
+#define n_block			_n_info._n_block
+#define n_program			_n_info._n_program
 
-#define F_FUNC_DEC	0x1
-#define F_FUNC_DEF	0x2
+node_t* node_create_identifier( int sym, int remote );
+node_t* node_create_integer( long long val );
+node_t* node_create_float( float val );
+node_t* node_create_string( char* str );
 
-#define n_info	_n_info
-#define n_func _n_info._n_info_func
-#define n_arg _n_info._n_info_arg
-#define n_type _n_info._n_info_type
+node_t* node_create_expr1( op_type_t, node_t* arg1 );
+node_t* node_create_expr2( op_type_t, node_t* arg1, node_t* arg2 );
+node_t* node_create_exprn( op_type_t, node_t* args );
+
+node_t* node_create_decl_stmt(int sym,type_t typ,node_t* init, 
+	int symmetric, int shared );
+
+node_t* node_update_decl_stmt(node_t* nptr,type_t typ,node_t* init,
+	int symmetric, int shared);
+
+node_t* node_create_expr_stmt( node_t* expr );
+
+node_t* node_create_program( node_t* block);
+
+node_t* node_create_block( node_t* block);
+node_t* node_block_add_stmt( node_t* block, node_t* stmt );
+
+node_t* node_create_assign_stmt( node_t* target, node_t* expr );
+
+node_t* node_create_print_stmt( node_t* arg );
+node_t* node_update_print_stmt( node_t* nptr, node_t* arg );
+
 
 node_t* node_alloc();
 void node_free(node_t* nptr);
@@ -93,6 +223,7 @@ node_t* node_delete(node_t* nptr);
 void node_destroy(node_t* nptr);
 node_t* node_create();
 
+/*
 node_t* node_create_func_dec( node_t* rettype, int sym, node_t* args );
 node_t* node_create_func_def( node_t* rettype, int sym, node_t* args );
 node_t* node_create_arg( node_t* type, int sym );
@@ -103,6 +234,7 @@ node_t* node_set_addrspace( node_t* type, int addrspace );
 node_t* node_set_ptrc( node_t* type, int ptrc );
 node_t* node_set_vecn( node_t* type, int vecn );
 node_t* node_set_arrn( node_t* type, int arrn );
+*/
 
 void node_fprintf(FILE* fp, node_t* nptr, int level );
 

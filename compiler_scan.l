@@ -30,7 +30,10 @@ WS  [ \t\v\f]
 BLANK ^[ \t\v\f]*\n
 
 %{
+
 #include <stdio.h>
+#include "compiler.h"
+#include "compiler_node.h"
 #include "compiler_gram.h"
 
 extern void __compiler_error(const char *);  /* prints grammar violation message */
@@ -53,6 +56,9 @@ static int check_type(void);
 "I HAS A"				{ return(IHASA); }
 "WE HAS A"				{ return(WEHASA); }
 
+"ITZ"						{ return(ITZ); }
+"THAR IZ"				{ return(THARIZ); }
+
 "ITZ A"					{ return(ITZA); }
 "ITZ SRSLY A"			{ return(ITZSRSLYA); }
 "ITZ LOTZ A"			{ return(ITZLOTZA); }
@@ -70,6 +76,9 @@ static int check_type(void);
 "YARNS"					{ return(YARNS); }
 "BUKKITS"				{ return(BUKKITS); }
 "NOOBS"					{ return(NOOBS); }
+
+"WIN"						{ __compiler_lval.ival = 1; return I_CONSTANT; }
+"FAIL"					{ __compiler_lval.ival = 0; return I_CONSTANT; }
 
 "R"						{ return(R); }
 "AN"						{ return(AN); }
@@ -139,21 +148,67 @@ static int check_type(void);
 "IM SRSLY MESIN WIF"	{ return(IMSRSLYMESINWIF); }
 "DUN MESIN WIF"		{ return(DUNMESINWIF); }
 
-{L}{A}*					{ return check_type(); }
+{L}{A}*					{ 
+								__compiler_lval.ival 
+									= add_str(symbuf,&symbuf_sz,yytext);
+                        return(IDENTIFIER);
+							}
 
-{HP}{H}+{IS}?				{ return I_CONSTANT; }
-{NZ}{D}*{IS}?				{ return I_CONSTANT; }
-"0"{O}*{IS}?				{ return I_CONSTANT; }
-{CP}?"'"([^'\\\n]|{ES})+"'"		{ return I_CONSTANT; }
+{HP}{H}+{IS}?				{ 
+									__compiler_lval.ival = atoi(yytext); 
+									return I_CONSTANT;
+								}
 
-{D}+{E}{FS}?				{ return F_CONSTANT; }
-{D}*"."{D}+{E}?{FS}?			{ return F_CONSTANT; }
-{D}+"."{E}?{FS}?			{ return F_CONSTANT; }
-{HP}{H}+{P}{FS}?			{ return F_CONSTANT; }
-{HP}{H}*"."{H}+{P}{FS}?			{ return F_CONSTANT; }
-{HP}{H}+"."{P}{FS}?			{ return F_CONSTANT; }
+{NZ}{D}*{IS}?				{ 
+									__compiler_lval.ival = atoi(yytext); 
+									return I_CONSTANT;
+								}
 
-({SP}?\"([^"\\\n]|{ES})*\"{WS}*)+	{ return STRING_LITERAL; }
+"0"{O}*{IS}?				{ 
+									__compiler_lval.ival = atoi(yytext); 
+									return I_CONSTANT;
+								}
+
+{CP}?"'"([^'\\\n]|{ES})+"'"		{ 
+												__compiler_lval.ival = atoi(yytext); 
+												return I_CONSTANT; 
+											}
+
+{D}+{E}{FS}?				{ 
+									__compiler_lval.ival = atof(yytext); 
+									return F_CONSTANT;
+								}
+
+{D}*"."{D}+{E}?{FS}?		{ 
+									__compiler_lval.ival = atof(yytext); 
+									return F_CONSTANT;
+								}
+
+{D}+"."{E}?{FS}?			{
+									__compiler_lval.ival = atof(yytext); 
+									return F_CONSTANT;
+								}
+
+{HP}{H}+{P}{FS}?			{
+									__compiler_lval.ival = atof(yytext); 
+									return F_CONSTANT;
+								}
+
+{HP}{H}*"."{H}+{P}{FS}?			{
+											__compiler_lval.ival = atof(yytext); 
+											return F_CONSTANT;
+										}
+
+{HP}{H}+"."{P}{FS}?			{
+										__compiler_lval.ival = atof(yytext); 
+										return F_CONSTANT;
+									}
+
+({SP}?\"([^"\\\n]|{ES})*\"{WS}*)+	{
+													__compiler_lval.ival 
+														= add_str(symbuf,&symbuf_sz,yytext);
+													return STRING_LITERAL;
+												}
 
 "..."				{ return ELLIPSIS; }
 "\n"				{ return EOL; }
