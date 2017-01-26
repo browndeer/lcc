@@ -51,6 +51,7 @@ typedef enum {
 	N_BREAK_STATEMENT,
 	N_FOR_STATEMENT,
 	N_WHILE_STATEMENT,
+	N_BARRIER_STATEMENT,
 	N_BLOCK,
 	N_PROGRAM
 } node_type_t;
@@ -71,7 +72,11 @@ typedef enum {
 	OP_XOR,
 	OP_NOT,
 	OP_EQ,
-	OP_NEQ
+	OP_NEQ,
+	OP_RAND,
+	OP_RANDF,
+	OP_SHMEM_NPES,
+	OP_SHMEM_PE
 } op_type_t;
 
 typedef enum {
@@ -240,6 +245,7 @@ node_t* node_create_integer( long long val );
 node_t* node_create_float( float val );
 node_t* node_create_string( char* str );
 
+node_t* node_create_expr0( op_type_t );
 node_t* node_create_expr1( op_type_t, node_t* arg1 );
 node_t* node_create_expr2( op_type_t, node_t* arg1, node_t* arg2 );
 node_t* node_create_exprn( op_type_t, node_t* args );
@@ -277,6 +283,8 @@ node_t* node_create_for_stmt(int loop_label, int iter, int loop_sym,
 
 node_t* node_create_while_stmt(int loop_label, int iter, int loop_sym, 
 	node_t* expr, node_t* block );
+
+node_t* node_create_barrier_stmt( void );
 
 
 node_t* node_alloc();

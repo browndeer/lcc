@@ -136,6 +136,9 @@ static int check_type(void);
 "GTFO"					{ return(GTFO); }
 "I IZ"					{ return(IIZ); }
 
+"WHATEVR"				{ return(WHATEVR); }
+"WHATEVAR"				{ return(WHATEVAR); }
+
 "MAH FRENZ"				{ return(MAHFRENZ); }
 "ME"						{ return(ME); }
 "HUGZ"					{ return(HUGZ); }

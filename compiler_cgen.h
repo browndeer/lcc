@@ -37,6 +37,7 @@ void cgen_case_stmt( FILE* fp, node_t* nptr );
 void cgen_break_stmt( FILE* fp, node_t* nptr );
 void cgen_for_stmt( FILE* fp, node_t* nptr );
 void cgen_while_stmt( FILE* fp, node_t* nptr );
+void cgen_barrier_stmt( FILE* fp, node_t* nptr );
 
 #endif
 

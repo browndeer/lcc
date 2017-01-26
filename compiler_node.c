@@ -234,6 +234,17 @@ node_create_string( char* str )
 
 
 node_t*
+node_create_expr0( op_type_t op )
+{
+	node_t* tmp = node_create();
+	tmp->ntyp = N_EXPRESSION;
+	tmp->n_expr.op = op;
+	tmp->n_expr.args = 0;
+	return(tmp);
+}
+
+
+node_t*
 node_create_expr1( op_type_t op, node_t* arg1 )
 {
 	node_t* tmp = node_create();
@@ -440,6 +451,15 @@ node_create_while_stmt(
 	tmp->n_while_stmt.loop_sym = loop_sym;
 	tmp->n_while_stmt.expr = expr;
 	tmp->n_while_stmt.block = block;
+	return(tmp);
+}
+
+
+node_t*
+node_create_barrier_stmt( void )
+{
+	node_t* tmp = node_create();
+	tmp->ntyp = N_BARRIER_STATEMENT;
 	return(tmp);
 }
 

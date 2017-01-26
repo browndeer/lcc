@@ -16,6 +16,7 @@
 %token WTF OMG OMGWTF
 %token IMINYR UPPIN NERFIN YR TIL WILE IMOUTTAYR
 %token HOWIZI IFUSAYSO FOUNDYR GTFO IIZ
+%token WHATEVR WHATEVAR
 %token MAHFRENZ ME HUGZ TXTMAHBFF ANSTUFF TTYL UR MAH IMSHARINIT
 %token IMMESINWIF IMSRSLYMESINWIF DUNMESINWIF
 
@@ -83,6 +84,7 @@ void yyerror(const char*);
 %type <node> break_statement
 %type <node> for_statement while_statement
 %type <ival> iter
+%type <node> barrier_statement
 
 %type <ival> eol
 
@@ -108,6 +110,7 @@ statement
 	| break_statement 
 	| for_statement 
 	| while_statement 
+	| barrier_statement 
 	;
 
 declaration_statement
@@ -175,6 +178,10 @@ expression_statement
 
 expression
    : primary_expression 
+	| WHATEVR { $$=node_create_expr0(OP_RAND); }
+	| WHATEVAR { $$=node_create_expr0(OP_RANDF); }
+	| MAHFRENZ { $$=node_create_expr0(OP_SHMEM_NPES); }
+	| ME { $$=node_create_expr0(OP_SHMEM_PE); }
 	| unary_op expression { $$=node_create_expr1($1,$2); }
 	| binary_op expression AN expression { $$=node_create_expr2($1,$2,$4); }
 	| relational_op expression AN expression { $$=node_create_expr2($1,$2,$4); }
@@ -302,6 +309,10 @@ while_statement
 iter
 	: UPPIN { $$=+1; }
 	| NERFIN { $$=-1; }
+	;
+
+barrier_statement
+	: HUGZ EOL { $$=node_create_barrier_stmt(); }
 	;
 
 eol
