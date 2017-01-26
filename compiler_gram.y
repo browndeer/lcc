@@ -12,9 +12,9 @@
 %token BOTHSAEM DIFFRINT
 %token SMOOSH MAEK APOSTROPHEZ
 %token VISIBLE GIMMEH
-%token ORLY YARLY MEBBE NOWAI OCI
+%token ORLY YARLY MEBBE NOWAI OIC
 %token WTF OMG OMGWTF
-%token IMINYR UPPIN NERFIN YR TIL WILE
+%token IMINYR UPPIN NERFIN YR TIL WILE IMOUTTAYR
 %token HOWIZI IFUSAYSO FOUNDYR GTFO IIZ
 %token MAHFRENZ ME HUGZ TXTMAHBFF ANSTUFF TTYL UR MAH IMSHARINIT
 %token IMMESINWIF IMSRSLYMESINWIF DUNMESINWIF
@@ -55,7 +55,7 @@ void yyerror(const char*);
 %type <ival> BOTHSAEM DIFFRINT
 %type <ival> SMOOSH MAEK APOSTROPHEZ
 %type <ival> VISIBLE GIMMEH
-%type <ival> ORLY YARLY MEBBE NOWAI OCI
+%type <ival> ORLY YARLY MEBBE NOWAI OIC
 %type <ival> WTF OMG OMGWTF
 %type <ival> IMINYR UPPIN NERFIN YR TIL WILE
 %type <ival> HOWIZI IFUSAYSO FOUNDYR GTFO IIZ
@@ -77,6 +77,14 @@ void yyerror(const char*);
 %type <ival> typespec type types init
 %type <node> assignment_statement
 %type <node> print_statement print
+%type <node> if_statement
+%type <node> if_block else_block elsif_clauses elsif_clause
+%type <node> switch_statement case_statement
+%type <node> break_statement
+%type <node> for_statement while_statement
+%type <ival> iter
+
+%type <ival> eol
 
 %%
 
@@ -94,10 +102,16 @@ statement
 	| expression_statement 
 	| assignment_statement 
 	| print_statement 
+	| if_statement 
+	| switch_statement 
+	| case_statement 
+	| break_statement 
+	| for_statement 
+	| while_statement 
 	;
 
 declaration_statement
-	: declaration EOL { $$=$1; }
+	: declaration eol { $$=$1; }
 	;
 
 declaration
@@ -156,7 +170,7 @@ init
 	;
 
 expression_statement
-	: expression EOL { $$=node_create_expr_stmt($1); }
+	: expression eol { $$=node_create_expr_stmt($1); }
 	;
 
 expression
@@ -220,16 +234,79 @@ relational_op
    ;
 
 assignment_statement
-	: target R expression EOL { $$=node_create_assign_stmt($1,$3); }
+	: target R expression eol { $$=node_create_assign_stmt($1,$3); }
 	;
 
 print_statement
-	: print EOL
+	: print eol
 	;
 
 print
 	: VISIBLE primary_expression { $$=node_create_print_stmt($2); }
 	| print primary_expression { $$=node_update_print_stmt($1,$2); }
+	;
+
+if_statement
+	: ORLY eol if_block OIC eol
+		{ $$=node_create_if_stmt($3,0,0); printf("IF 1\n"); }
+	| ORLY eol if_block elsif_clauses OIC eol
+		{ $$=node_create_if_stmt($3,$4,0); printf("IF 2\n"); }
+	| ORLY eol if_block elsif_clauses else_block OIC eol
+		{ $$=node_create_if_stmt($3,$4,$5); printf("IF 3\n"); }
+	| ORLY eol elsif_clauses else_block OIC eol
+		{ $$=node_create_if_stmt(0,$3,$4); printf("IF 4\n"); }
+	| ORLY eol else_block OIC eol
+		{ $$=node_create_if_stmt(0,0,$3); printf("IF 5\n"); }
+	;
+
+if_block
+	: YARLY eol block { $$=$3; }
+	;
+
+else_block
+	: NOWAI eol block { $$=$3; }
+	;
+
+elsif_clauses
+	: elsif_clause { $$=$1; }
+	| elsif_clauses elsif_clause { $$=node_insert_tail($1,$2); }
+	;
+
+elsif_clause
+	: MEBBE expression eol block { $$=node_create_elsif_clause($2,$4); }
+	;
+
+switch_statement
+	: WTF eol block OIC eol { $$=node_create_switch_stmt($3); printf("<wtf>\n"); }
+	;
+
+case_statement
+	: OMG expression eol { $$=node_create_case_stmt($2); printf("<omg>\n"); }
+	| OMGWTF eol { $$=node_create_case_stmt(0); printf("<omgwtf>\n"); }
+	;
+
+break_statement
+	: GTFO EOL { $$=node_create_break_stmt(); }
+	;
+
+for_statement
+	: IMINYR IDENTIFIER iter YR IDENTIFIER TIL expression EOL block IMOUTTAYR IDENTIFIER EOL
+		{ $$=node_create_for_stmt($2,$3,$5,$7,$9); }
+	;
+
+while_statement
+	: IMINYR IDENTIFIER iter YR IDENTIFIER WILE expression EOL block IMOUTTAYR IDENTIFIER EOL
+		{ $$=node_create_while_stmt($2,$3,$5,$7,$9); }
+	;
+
+iter
+	: UPPIN { $$=+1; }
+	| NERFIN { $$=-1; }
+	;
+
+eol
+	: EOL
+	| eol EOL
 	;
 
 %%

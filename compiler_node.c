@@ -176,29 +176,6 @@ node_destroy(node_t* nptr)
 
 	node_t* tmp;
 
-#if(0)
-	switch(nptr->ntyp) {
-		case NTYP_EMPTY:
-		case NTYP_FUNC_DEC:
-		case NTYP_FUNC_DEC:
-			while (tmp) tmp = node_delete(tmp);
-			break;
-		case NTYP_ARG:
-			/* for each instr, call destroy */
-			while (tmp) tmp = node_delete(tmp);
-			break;
-			break;
-		case NTYP_BLOCK:
-			/* for each instr, call destroy */
-			tmp = nptr->n_block.ins;
-			while (tmp) tmp = node_delete(tmp);
-			break;
-		default:
-			/* XXX there could be some nasty error message here */
-			break;
-	}
-#endif
-
 	node_free(nptr);
 }
 
@@ -208,144 +185,263 @@ node_create()
 {
 	node_t* tmp = node_alloc();
 	tmp->prev = tmp->next = 0;
-	tmp->ntyp = NTYP_EMPTY;
+	tmp->ntyp = 0;
 	return(tmp);
 }
 
 
 node_t*
-node_create_func_dec( node_t* rettype, int sym, node_t* args )
+node_create_identifier( int sym, int typ )
 {
 	node_t* tmp = node_create();
-	tmp->ntyp = NTYP_FUNC;
-	tmp->n_func.flags = F_FUNC_DEC;
-	tmp->n_func.rettype = rettype;
-	tmp->n_func.sym = sym;
-	tmp->n_func.args = args;
+	tmp->ntyp = N_IDENTIFIER;
+
+	tmp->n_ident.sym = sym;
+	tmp->n_ident.typ = typ;
+
 	return(tmp);
 }
 
 
 node_t*
-node_create_func_def( node_t* rettype, int sym, node_t* args )
+node_create_integer( long long val )
 {
 	node_t* tmp = node_create();
-	tmp->ntyp = NTYP_FUNC;
-	tmp->n_func.flags = F_FUNC_DEF;
-	tmp->n_func.rettype = rettype;
-	tmp->n_func.sym = sym;
-	tmp->n_func.args = args;
+	tmp->ntyp = N_INTEGER_CONSTANT;
+	tmp->n_integer.val = val;
 	return(tmp);
 }
 
 
 node_t*
-node_create_arg( node_t* type, int sym)
+node_create_float( float val )
 {
 	node_t* tmp = node_create();
-	tmp->ntyp = NTYP_ARG;
-	tmp->n_arg.argtype = type;
-	tmp->n_arg.sym = sym;
+	tmp->ntyp = N_FLOAT_CONSTANT;
+	tmp->n_float.val = val;
 	return(tmp);
 }
 
 
 node_t*
-node_create_type( int arrn, int vecn, int datatype, int addrspace, int ptrc)
+node_create_string( char* str )
 {
 	node_t* tmp = node_create();
-	tmp->ntyp = NTYP_TYPE;
-	tmp->n_type.datatype = datatype;
-	tmp->n_type.addrspace = addrspace;
-	tmp->n_type.ptrc = ptrc;
-	tmp->n_type.vecn = vecn;
-	tmp->n_type.arrn = arrn;
+	tmp->ntyp = N_STRING_CONSTANT;
+	tmp->n_string.str = str;
 	return(tmp);
 }
 
 
 node_t*
-node_set_addrspace( node_t* type, int addrspace )
+node_create_expr1( op_type_t op, node_t* arg1 )
 {
-	type->n_type.addrspace = addrspace;
-	return(type);
+	node_t* tmp = node_create();
+	tmp->ntyp = N_EXPRESSION;
+	tmp->n_expr.op = op;
+	tmp->n_expr.args = arg1;
+	return(tmp);
 }
 
 
 node_t*
-node_set_ptrc( node_t* type, int ptrc )
+node_create_expr2( op_type_t op, node_t* arg1, node_t* arg2 )
 {
-	type->n_type.ptrc = ptrc;
-	return(type);
+	node_t* tmp = node_create();
+	tmp->ntyp = N_EXPRESSION;
+	tmp->n_expr.op = op;
+	tmp->n_expr.args = arg1;
+	node_insert_tail(tmp->n_expr.args,arg2);
+	return(tmp);
 }
 
 
 node_t*
-node_set_vecn( node_t* type, int vecn )
+node_create_exprn( op_type_t op, node_t* args )
 {
-	type->n_type.vecn = vecn;
-	return(type);
+	return 0;
 }
 
 
 node_t*
-node_set_arrn( node_t* type, int arrn )
+node_create_decl_stmt( int sym, type_t typ, node_t* init, 
+	int symmetric, int shared )
 {
-	type->n_type.arrn = arrn;
-	return(type);
+if (typ) printf("type is %d\n",typ);
+
+	node_t* tmp = node_create();
+	tmp->ntyp = N_DECLARATION_STATEMENT;
+	tmp->n_decl_stmt.sym = sym;
+	tmp->n_decl_stmt.typ = typ;
+	tmp->n_decl_stmt.init = init;
+	tmp->n_decl_stmt.symmetric = symmetric;
+	tmp->n_decl_stmt.shared = shared;
+	return(tmp);
 }
 
 
-void
-node_fprintf(FILE* fp, node_t* nptr, int level)
+node_t*
+node_update_decl_stmt( node_t* nptr, type_t typ, node_t* init, 
+	int symmetric, int shared )
 {
-	int i;
-	node_t* tmp = nptr;
-
-	while (tmp) {
-
-		switch(tmp->ntyp) {
-
-			case NTYP_EMPTY:
-				for(i=0;i<level*2;i++) fprintf(fp," ");
-				fprintf(fp,"[%p] EMPTY\n",tmp);
-				break;
-
-			case NTYP_FUNC:
-				for(i=0;i<level*2;i++) fprintf(fp," ");
-				fprintf(fp,"[%p] FUNC %d",tmp,tmp->n_func.rettype);
-//				fprintf(fp," %d",tmp->n_func.sym);
-				fprintf(fp," %s",symbuf+tmp->n_func.sym);
-				fprintf(fp,"\n");
-				node_fprintf(fp,tmp->n_func.rettype,level+1);
-				node_fprintf(fp,tmp->n_func.args,level+1);
-				break;
-
-			case NTYP_ARG:
-				for(i=0;i<level*2;i++) fprintf(fp," ");
-				fprintf(fp,"[%p] ARG",tmp);
-				fprintf(fp," %d",tmp->n_arg.sym);
-				node_fprintf(fp,tmp->n_arg.argtype,level+1);
-				break;
-
-			case NTYP_TYPE:
-				for(i=0;i<level*2;i++) fprintf(fp," ");
-				fprintf(fp,"[%p] TYPE %d",tmp,tmp->n_type.datatype);
-				if (tmp->n_type.vecn > 1) fprintf(fp," <%dx>",tmp->n_type.vecn);
-				if (tmp->n_type.arrn > 1) fprintf(fp," [%dx]",tmp->n_type.arrn);
-				if (tmp->n_type.ptrc) fprintf(fp," (%d)",tmp->n_type.addrspace);
-				for(i=0;i<tmp->n_type.ptrc;i++) fprintf(fp,"*");
-				fprintf(fp,"\n");
-				break;
-
-			default:
-				for(i=0;i<level*2;i++) fprintf(fp," ");
-				fprintf(fp,"[%p] ERROR: UNDEFINED NODE TYPE\n",tmp);
-				break;
-
-		}
-
-		tmp = tmp->next;
-	}
-
+	if (typ) nptr->n_decl_stmt.typ = typ;
+	if (init) nptr->n_decl_stmt.init = init;
+	if (symmetric) nptr->n_decl_stmt.symmetric = symmetric;
+	if (shared) nptr->n_decl_stmt.shared = shared;
+	return(nptr);
 }
+
+
+node_t*
+node_create_expr_stmt( node_t* expr )
+{
+	node_t* tmp = node_create();
+	tmp->ntyp = N_EXPRESSION_STATEMENT;
+	tmp->n_expr_stmt.expr = expr;
+	return(tmp);
+}
+
+
+node_t*
+node_create_program( node_t* block )
+{
+	node_t* tmp = node_create();
+	tmp->ntyp = N_PROGRAM;
+	tmp->n_program.block = block;
+	return(tmp);
+}
+
+
+node_t*
+node_create_block( node_t* stmt )
+{
+	node_t* tmp = node_create();
+	tmp->ntyp = N_BLOCK;
+	tmp->n_block.stmts = stmt;
+	return(tmp);
+}
+
+
+node_t*
+node_block_add_stmt( node_t* block, node_t* stmt )
+{
+	node_insert_tail(block->n_block.stmts,stmt);
+	return(block);
+}
+
+
+node_t*
+node_create_assign_stmt( node_t* target, node_t* expr )
+{
+	node_t* tmp = node_create();
+	tmp->ntyp = N_ASSIGNMENT_STATEMENT;
+	tmp->n_assign_stmt.target = target;
+	tmp->n_assign_stmt.expr = expr;
+	return(tmp);
+}
+
+
+node_t*
+node_create_print_stmt( node_t* arg )
+{
+	node_t* tmp = node_create();
+	tmp->ntyp = N_PRINT_STATEMENT;
+	tmp->n_print_stmt.args = arg;
+	return(tmp);
+}
+
+
+node_t*
+node_update_print_stmt( node_t* nptr, node_t* arg )
+{
+	node_insert_tail( nptr->n_print_stmt.args, arg );
+	return(nptr);
+}
+
+
+node_t*
+node_create_if_stmt(node_t* if_block,node_t* elsif_clauses, node_t* else_block)
+{
+	node_t* tmp = node_create();
+	tmp->ntyp = N_IF_STATEMENT;
+	tmp->n_if_stmt.if_block = if_block;
+	tmp->n_if_stmt.elsif_clauses = elsif_clauses;
+	tmp->n_if_stmt.else_block = else_block;
+	return(tmp);
+}
+
+
+node_t*
+node_create_elsif_clause( node_t* expr, node_t* block )
+{
+	node_t* tmp = node_create();
+	tmp->ntyp = N_ELSIF_CLAUSE;
+	tmp->n_elsif_clause.expr = expr;
+	tmp->n_elsif_clause.block = block;
+	return(tmp);
+}
+
+
+node_t*
+node_create_switch_stmt( node_t* block )
+{
+	node_t* tmp = node_create();
+	tmp->ntyp = N_SWITCH_STATEMENT;
+	tmp->n_switch_stmt.block = block;
+	return(tmp);
+}
+
+node_t*
+node_create_case_stmt( node_t* expr )
+{
+	node_t* tmp = node_create();
+	tmp->ntyp = N_CASE_STATEMENT;
+	tmp->n_case_stmt.expr = expr;
+	return(tmp);
+}
+
+
+node_t*
+node_create_break_stmt( void )
+{
+	node_t* tmp = node_create();
+	tmp->ntyp = N_BREAK_STATEMENT;
+	return(tmp);
+}
+
+
+node_t*
+node_create_for_stmt( 
+	int loop_label, int loop_iter, int loop_sym,
+   node_t* expr, node_t* block 
+)
+{
+	node_t* tmp = node_create();
+	tmp->ntyp = N_FOR_STATEMENT;
+	tmp->n_while_stmt.loop_label = loop_label;
+	tmp->n_while_stmt.loop_iter = loop_iter;
+	tmp->n_while_stmt.loop_sym = loop_sym;
+	tmp->n_while_stmt.expr = expr;
+	tmp->n_while_stmt.block = block;
+	return(tmp);
+}
+
+
+node_t*
+node_create_while_stmt( 
+	int loop_label, int loop_iter, int loop_sym,
+   node_t* expr, node_t* block 
+)
+{
+	node_t* tmp = node_create();
+	tmp->ntyp = N_WHILE_STATEMENT;
+	tmp->n_while_stmt.loop_label = loop_label;
+	tmp->n_while_stmt.loop_iter = loop_iter;
+	tmp->n_while_stmt.loop_sym = loop_sym;
+	tmp->n_while_stmt.expr = expr;
+	tmp->n_while_stmt.block = block;
+	return(tmp);
+}
+
+
+

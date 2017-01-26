@@ -85,6 +85,26 @@ void cgen_stmt( FILE* fp, node_t* nptr )
 			cgen_print_stmt(fp,nptr);
 			break;
 
+		case N_IF_STATEMENT:
+			cgen_if_stmt(fp,nptr);
+			break;
+
+		case N_SWITCH_STATEMENT:
+			cgen_switch_stmt(fp,nptr);
+			break;
+
+		case N_CASE_STATEMENT:
+			cgen_case_stmt(fp,nptr);
+			break;
+
+		case N_FOR_STATEMENT:
+			cgen_for_stmt(fp,nptr);
+			break;
+
+		case N_WHILE_STATEMENT:
+			cgen_while_stmt(fp,nptr);
+			break;
+
 		default:
 			__error("missing statement node");
 
@@ -326,6 +346,106 @@ void cgen_print_stmt( FILE* fp, node_t* nptr )
 		cgen_expr(fp,arg);
 		fprintf(fp,");\n");
 	}
+
+}
+
+
+void cgen_if_stmt( FILE* fp, node_t* nptr )
+{
+	fprintf(fp,"if (_it)\n");
+
+	if (nptr->n_if_stmt.if_block) 
+		cgen_block(fp,nptr->n_if_stmt.if_block);
+	else
+		fprintf(fp,"{}\n");
+
+	node_t* elsif = nptr->n_if_stmt.elsif_clauses;
+
+	for( ; elsif; elsif=elsif->next) {
+		fprintf(fp,"else if (");
+		cgen_expr(fp,elsif->n_elsif_clause.expr);
+		fprintf(fp,")\n");
+		cgen_block(fp,elsif->n_elsif_clause.block);
+	}
+
+	if (nptr->n_if_stmt.else_block) {
+		fprintf(fp,"else\n");
+		cgen_block(fp,nptr->n_if_stmt.else_block);
+	}
+
+}
+
+
+void cgen_switch_stmt( FILE* fp, node_t* nptr )
+{
+	fprintf(fp,"switch (_it)\n");
+
+	cgen_block(fp,nptr->n_switch_stmt.block);
+}
+
+
+void cgen_case_stmt( FILE* fp, node_t* nptr )
+{
+	if (nptr->n_case_stmt.expr) {
+		fprintf(fp,"case ");
+		cgen_expr(fp,nptr->n_case_stmt.expr);
+		fprintf(fp,":\n");
+	} else {
+		fprintf(fp,"default:\n");
+	}
+}
+
+
+void cgen_break_stmt( FILE* fp, node_t* nptr )
+{
+	fprintf(fp,"break;\n");
+}
+
+
+void cgen_for_stmt( FILE* fp, node_t* nptr )
+{
+
+	char* loop_sym_name = symbuf+nptr->n_for_stmt.loop_sym;
+
+	fprintf(fp,"for (");
+
+	fprintf(fp,"int %s = 0;",loop_sym_name);
+
+	fprintf(fp,"_op_not(");
+	cgen_expr(fp,nptr->n_for_stmt.expr);
+	fprintf(fp,")");
+
+	if (nptr->n_for_stmt.loop_iter == +1)
+		fprintf(fp,"; %s++ )\n",loop_sym_name);
+	else if (nptr->n_for_stmt.loop_iter == -1)
+		fprintf(fp,"; %s-- )\n",loop_sym_name);
+	else
+		__error("bad loop iterator");
+
+	cgen_block(fp,nptr->n_for_stmt.block);
+
+}
+
+
+void cgen_while_stmt( FILE* fp, node_t* nptr )
+{
+
+	char* loop_sym_name = symbuf+nptr->n_for_stmt.loop_sym;
+
+	fprintf(fp,"for (");
+
+	fprintf(fp,"int %s = 0;",loop_sym_name);
+
+	cgen_expr(fp,nptr->n_for_stmt.expr);
+
+	if (nptr->n_for_stmt.loop_iter == +1)
+		fprintf(fp,"; %s++ )\n",loop_sym_name);
+	else if (nptr->n_for_stmt.loop_iter == -1)
+		fprintf(fp,"; %s-- )\n",loop_sym_name);
+	else
+		__error("bad loop iterator");
+
+	cgen_block(fp,nptr->n_for_stmt.block);
 
 }
 

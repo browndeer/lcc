@@ -44,6 +44,13 @@ typedef enum {
 	N_DECLARATION_STATEMENT,
 	N_ASSIGNMENT_STATEMENT,
 	N_PRINT_STATEMENT,
+	N_IF_STATEMENT,
+	N_ELSIF_CLAUSE,
+	N_SWITCH_STATEMENT,
+	N_CASE_STATEMENT,
+	N_BREAK_STATEMENT,
+	N_FOR_STATEMENT,
+	N_WHILE_STATEMENT,
 	N_BLOCK,
 	N_PROGRAM
 } node_type_t;
@@ -147,6 +154,46 @@ typedef struct node_struct {
 			struct node_struct* args;
 		} _n_print_statement;
 
+		struct {
+			struct node_struct* if_block;
+			struct node_struct* elsif_clauses;
+			struct node_struct* else_block;
+		} _n_if_statement;
+
+		struct {
+			struct node_struct* block;
+		} _n_switch_statement;
+
+		struct {
+			struct node_struct* expr;
+		} _n_case_statement;
+
+		struct {
+			int loop_label;
+			int loop_iter;
+			int loop_sym;
+			struct node_struct* expr;
+			struct node_struct* block;
+		} _n_for_statement;
+
+		struct {
+			int loop_label;
+			int loop_iter;
+			int loop_sym;
+			struct node_struct* expr;
+			struct node_struct* block;
+		} _n_while_statement;
+
+
+		/**
+		 *** clauses
+		 ***/
+
+		struct {
+			struct node_struct* expr;
+			struct node_struct* block;
+		} _n_elsif_clause;
+
 
 		/***
 		 *** block
@@ -178,8 +225,15 @@ typedef struct node_struct {
 #define n_expr_stmt		_n_info._n_expression_statement
 #define n_assign_stmt	_n_info._n_assignment_statement
 #define n_print_stmt		_n_info._n_print_statement
+#define n_if_stmt			_n_info._n_if_statement
+#define n_elsif_clause	_n_info._n_elsif_clause
+#define n_switch_stmt	_n_info._n_switch_statement
+#define n_case_stmt		_n_info._n_case_statement
+#define n_for_stmt		_n_info._n_for_statement
+#define n_while_stmt		_n_info._n_while_statement
 #define n_block			_n_info._n_block
 #define n_program			_n_info._n_program
+
 
 node_t* node_create_identifier( int sym, int remote );
 node_t* node_create_integer( long long val );
@@ -207,6 +261,22 @@ node_t* node_create_assign_stmt( node_t* target, node_t* expr );
 
 node_t* node_create_print_stmt( node_t* arg );
 node_t* node_update_print_stmt( node_t* nptr, node_t* arg );
+
+node_t* node_create_if_stmt(node_t* if_block, node_t* elsif_clauses,
+	node_t* else_block );
+
+node_t* node_create_elsif_clause( node_t* expr, node_t* block );
+
+node_t* node_create_switch_stmt( node_t* block );
+node_t* node_create_case_stmt( node_t* expr );
+
+node_t* node_create_break_stmt( void );
+
+node_t* node_create_for_stmt(int loop_label, int iter, int loop_sym, 
+	node_t* expr, node_t* block );
+
+node_t* node_create_while_stmt(int loop_label, int iter, int loop_sym, 
+	node_t* expr, node_t* block );
 
 
 node_t* node_alloc();

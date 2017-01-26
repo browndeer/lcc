@@ -14,7 +14,7 @@
 
 O   [0-7]
 D   [0-9]
-NZ  [1-9]
+NZ  [-1-9]
 L   [a-zA-Z]
 A   [a-zA-Z_0-9]
 H   [a-fA-F0-9]
@@ -113,10 +113,10 @@ static int check_type(void);
 "GIMMEH"					{ return(GIMMEH); }
 
 "O RLY?"					{ return(ORLY); }
-"YARLY"					{ return(YARLY); }
+"YA RLY"					{ return(YARLY); }
 "MEBBE"					{ return(MEBBE); }
 "NO WAI"					{ return(NOWAI); }
-"OIC"						{ return(OCI); }
+"OIC"						{ return(OIC); }
 
 "WTF?"					{ return(WTF); }
 "OMG"						{ return(OMG); }
@@ -128,6 +128,7 @@ static int check_type(void);
 "YR"						{ return(YR); }
 "TIL"						{ return(TIL); }
 "WILE"					{ return(WILE); }
+"IM OUTTA YR"			{ return(IMOUTTAYR); }
 
 "HOW IZ I"				{ return(HOWIZI); }
 "IF U SAY SO"			{ return(IFUSAYSO); }
@@ -156,21 +157,25 @@ static int check_type(void);
 
 {HP}{H}+{IS}?				{ 
 									__compiler_lval.ival = atoi(yytext); 
+printf("I_CONSTANT ival '%s' %d\n",yytext,__compiler_lval.ival);
 									return I_CONSTANT;
 								}
 
 {NZ}{D}*{IS}?				{ 
 									__compiler_lval.ival = atoi(yytext); 
+printf("I_CONSTANT ival '%s' %d\n",yytext,__compiler_lval.ival);
 									return I_CONSTANT;
 								}
 
 "0"{O}*{IS}?				{ 
 									__compiler_lval.ival = atoi(yytext); 
+printf("I_CONSTANT ival '%s' %d\n",yytext,__compiler_lval.ival);
 									return I_CONSTANT;
 								}
 
 {CP}?"'"([^'\\\n]|{ES})+"'"		{ 
 												__compiler_lval.ival = atoi(yytext); 
+printf("I_CONSTANT ival '%s' %d\n",yytext,__compiler_lval.ival);
 												return I_CONSTANT; 
 											}
 
@@ -212,7 +217,10 @@ static int check_type(void);
 
 "..."				{ return ELLIPSIS; }
 "\n"				{ return EOL; }
+","				{ return EOL; }
 "!"				{ return BANG; }
+"-"				{ return '-'; }
+"+"				{ return '+'; }
 
 {WS}+					{ /* whitespace separates tokens */ }
 .					{ /* discard bad characters */ }
