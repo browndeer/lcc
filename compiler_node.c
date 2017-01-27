@@ -191,15 +191,28 @@ node_create()
 
 
 node_t*
-node_create_identifier( int sym, int typ )
+node_create_identifier( int sym, int typ, node_t* expr, int remote )
 {
 	node_t* tmp = node_create();
 	tmp->ntyp = N_IDENTIFIER;
 
 	tmp->n_ident.sym = sym;
 	tmp->n_ident.typ = typ;
+	tmp->n_ident.expr = expr;
+	tmp->n_ident.remote = remote;
 
 	return(tmp);
+}
+
+
+node_t*
+node_update_identifier( node_t* nptr, int typ, node_t* expr, int remote )
+{
+	if (typ) nptr->n_ident.typ = typ;
+	if (expr) nptr->n_ident.expr = expr;
+	if(remote) nptr->n_ident.remote = remote;
+
+	return(nptr);
 }
 
 
@@ -224,7 +237,7 @@ node_create_float( float val )
 
 
 node_t*
-node_create_string( char* str )
+node_create_string( int str )
 {
 	node_t* tmp = node_create();
 	tmp->ntyp = N_STRING_CONSTANT;
@@ -278,8 +291,6 @@ node_t*
 node_create_decl_stmt( int sym, type_t typ, node_t* init, 
 	int symmetric, int shared )
 {
-if (typ) printf("type is %d\n",typ);
-
 	node_t* tmp = node_create();
 	tmp->ntyp = N_DECLARATION_STATEMENT;
 	tmp->n_decl_stmt.sym = sym;
@@ -460,6 +471,17 @@ node_create_barrier_stmt( void )
 {
 	node_t* tmp = node_create();
 	tmp->ntyp = N_BARRIER_STATEMENT;
+	return(tmp);
+}
+
+
+node_t*
+node_create_remote_stmt( node_t* expr, int hold )
+{
+	node_t* tmp = node_create();
+	tmp->ntyp = N_REMOTE_STATEMENT;
+	tmp->n_remote_stmt.expr = expr;
+	tmp->n_remote_stmt.hold = hold;
 	return(tmp);
 }
 

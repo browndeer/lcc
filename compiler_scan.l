@@ -37,6 +37,7 @@ BLANK ^[ \t\v\f]*\n
 #include "compiler_gram.h"
 
 extern void __compiler_error(const char *);  /* prints grammar violation message */
+extern int __compiler_lex(void);
 
 extern int sym_type(const char *);  /* returns type from symbol table */
 
@@ -44,14 +45,20 @@ extern int sym_type(const char *);  /* returns type from symbol table */
 
 static void comment(void);
 static int check_type(void);
+
+int __linenum = 1;
+
 %}
 
 %%
 
-^[ ]*\n		{ }
+^[ ]*\n		{ ++__linenum; }
 
-"OBTW"{WS}*"\n"                                   { comment(); }
-"BTW ".*                                    { /* consume //-comment */ }
+"OBTW"{WS}*"\n"      { ++__linenum; comment(); }
+"BTW"{WS}+.*"\n"             { ++__linenum; /* consume //-comment */ }
+
+"HAI"						{ return(HAI); }
+"KTHXBYE"				{ return(KTHXBYE); }
 
 "I HAS A"				{ return(IHASA); }
 "WE HAS A"				{ return(WEHASA); }
@@ -160,27 +167,18 @@ static int check_type(void);
 
 {HP}{H}+{IS}?				{ 
 									__compiler_lval.ival = atoi(yytext); 
-printf("I_CONSTANT ival '%s' %d\n",yytext,__compiler_lval.ival);
 									return I_CONSTANT;
 								}
 
 {NZ}{D}*{IS}?				{ 
 									__compiler_lval.ival = atoi(yytext); 
-printf("I_CONSTANT ival '%s' %d\n",yytext,__compiler_lval.ival);
 									return I_CONSTANT;
 								}
 
 "0"{O}*{IS}?				{ 
 									__compiler_lval.ival = atoi(yytext); 
-printf("I_CONSTANT ival '%s' %d\n",yytext,__compiler_lval.ival);
 									return I_CONSTANT;
 								}
-
-{CP}?"'"([^'\\\n]|{ES})+"'"		{ 
-												__compiler_lval.ival = atoi(yytext); 
-printf("I_CONSTANT ival '%s' %d\n",yytext,__compiler_lval.ival);
-												return I_CONSTANT; 
-											}
 
 {D}+{E}{FS}?				{ 
 									__compiler_lval.ival = atof(yytext); 
@@ -218,12 +216,10 @@ printf("I_CONSTANT ival '%s' %d\n",yytext,__compiler_lval.ival);
 													return STRING_LITERAL;
 												}
 
-"..."				{ return ELLIPSIS; }
-"\n"				{ return EOL; }
+"..."{WS}*"\n"				{ ++__linenum; }
+"\n"				{ ++__linenum; return EOL; }
 ","				{ return EOL; }
 "!"				{ return BANG; }
-"-"				{ return '-'; }
-"+"				{ return '+'; }
 
 {WS}+					{ /* whitespace separates tokens */ }
 .					{ /* discard bad characters */ }
@@ -269,13 +265,13 @@ static void comment(void)
 				break;
 
 			case 4:
-				if (c=='\n') return;
+				if (c=='\n') { ++__linenum; return; }
 				else count = 0;
 				break;
 
 		}
 
-		if (c=='\n') newline=1;
+		if (c=='\n') { ++__linenum; newline=1; }
 
 	}
 

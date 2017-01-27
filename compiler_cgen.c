@@ -109,6 +109,10 @@ void cgen_stmt( FILE* fp, node_t* nptr )
 			cgen_barrier_stmt(fp,nptr);
 			break;
 
+		case N_REMOTE_STATEMENT:
+			cgen_remote_stmt(fp,nptr);
+			break;
+
 		default:
 			__error("missing statement node");
 
@@ -260,6 +264,7 @@ const char* op_name[] = {
    "_op_not",
    "_op_eq",
    "_op_neq",
+	"_op_index",
 	"_op_rand",
 	"_op_randf",
 	"_op_shmem_npes",
@@ -273,7 +278,13 @@ void cgen_expr( FILE* fp, node_t* nptr )
 	switch(nptr->ntyp) {
 
 		case N_IDENTIFIER:
-			fprintf(fp,"%s",symbuf+nptr->n_ident.sym);
+			if (nptr->n_ident.expr) {
+				fprintf(fp,"%s[",symbuf+nptr->n_ident.sym);
+				cgen_expr(fp,nptr->n_ident.expr);
+				fprintf(fp,"]");
+			} else {
+				fprintf(fp,"%s",symbuf+nptr->n_ident.sym);
+			}
 			break;
 
 		case N_INTEGER_CONSTANT:
@@ -285,7 +296,7 @@ void cgen_expr( FILE* fp, node_t* nptr )
 			break;
 
 		case N_STRING_CONSTANT:
-			fprintf(fp,"%s",nptr->n_string.str);
+			fprintf(fp,"%s",symbuf+nptr->n_string.str);
 			break;
 
 		case N_EXPRESSION:
@@ -467,6 +478,22 @@ void cgen_while_stmt( FILE* fp, node_t* nptr )
 void cgen_barrier_stmt( FILE* fp, node_t* nptr )
 {
 	fprintf(fp,"_barrier();\n");
+}
+
+
+void cgen_remote_stmt( FILE* fp, node_t* nptr )
+{
+
+	char* loop_sym_name = symbuf+nptr->n_for_stmt.loop_sym;
+
+	if (nptr->n_remote_stmt.expr) {
+		fprintf(fp,"_remote(");
+		cgen_expr(fp,nptr->n_remote_stmt.expr);
+		fprintf(fp,",%d);\n",nptr->n_remote_stmt.hold);
+	} else {
+		fprintf(fp,"_remote(0,0);\n");
+	}
+
 }
 
 

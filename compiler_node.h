@@ -52,6 +52,7 @@ typedef enum {
 	N_FOR_STATEMENT,
 	N_WHILE_STATEMENT,
 	N_BARRIER_STATEMENT,
+	N_REMOTE_STATEMENT,
 	N_BLOCK,
 	N_PROGRAM
 } node_type_t;
@@ -73,6 +74,7 @@ typedef enum {
 	OP_NOT,
 	OP_EQ,
 	OP_NEQ,
+	OP_INDEX,
 	OP_RAND,
 	OP_RANDF,
 	OP_SHMEM_NPES,
@@ -109,6 +111,8 @@ typedef struct node_struct {
 		struct {
 			int sym;
 			type_t typ;
+			struct node_struct* expr;
+			int remote;
 		} _n_identifier;
 
 		struct {
@@ -120,7 +124,7 @@ typedef struct node_struct {
 		} _n_float_constant;
 
 		struct {
-			char* str;
+			int str;
 		} _n_string_constant;
 
 	
@@ -189,6 +193,11 @@ typedef struct node_struct {
 			struct node_struct* block;
 		} _n_while_statement;
 
+		struct {
+			struct node_struct* expr;
+			int hold;
+		} _n_remote_statement;
+
 
 		/**
 		 *** clauses
@@ -236,14 +245,17 @@ typedef struct node_struct {
 #define n_case_stmt		_n_info._n_case_statement
 #define n_for_stmt		_n_info._n_for_statement
 #define n_while_stmt		_n_info._n_while_statement
+#define n_remote_stmt	_n_info._n_remote_statement
 #define n_block			_n_info._n_block
 #define n_program			_n_info._n_program
 
 
-node_t* node_create_identifier( int sym, int remote );
+node_t* node_create_identifier( int sym, int typ, node_t* expr, int remote );
+node_t* node_update_identifier(node_t* nptr, int typ, node_t* expr,int remote);
+
 node_t* node_create_integer( long long val );
 node_t* node_create_float( float val );
-node_t* node_create_string( char* str );
+node_t* node_create_string( int str );
 
 node_t* node_create_expr0( op_type_t );
 node_t* node_create_expr1( op_type_t, node_t* arg1 );
@@ -286,6 +298,7 @@ node_t* node_create_while_stmt(int loop_label, int iter, int loop_sym,
 
 node_t* node_create_barrier_stmt( void );
 
+node_t* node_create_remote_stmt( node_t* expr, int hold );
 
 node_t* node_alloc();
 void node_free(node_t* nptr);

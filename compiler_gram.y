@@ -1,3 +1,4 @@
+%token HAI KTHXBYE
 %token IDENTIFIER I_CONSTANT F_CONSTANT STRING_LITERAL
 %token IHASA WEHASA
 %token ITZA ITZSRSLYA ITZLOTZA ITZSRSLYLOTZA 
@@ -31,6 +32,7 @@
 #include <string.h>
 
 void yyerror(const char*);
+int yylex(void);
 
 %}
 
@@ -42,7 +44,8 @@ void yyerror(const char*);
    node_t* node;
 }
 
-%type <ival> IDENTIFIER I_CONSTANT F_CONSTANT STRING_LITERAL
+%type <ival> IDENTIFIER I_CONSTANT STRING_LITERAL
+%type <fval> F_CONSTANT 
 %type <ival> IHASA WEHASA
 %type <ival> ITZA ITZSRSLYA ITZLOTZA ITZSRSLYLOTZA 
 %type <ival> TROOF NUMBR NUMBAR YARN BUKKIT NOOB
@@ -75,7 +78,8 @@ void yyerror(const char*);
 %type <ival> unary_op unary_arithmetic_op unary_logical_op
 %type <ival> binary_op binary_arithmetic_op binary_logical_op
 %type <ival> relational_op
-%type <ival> typespec type types init
+%type <ival> typespec type types 
+%type <node> init
 %type <node> assignment_statement
 %type <node> print_statement print
 %type <node> if_statement
@@ -85,22 +89,24 @@ void yyerror(const char*);
 %type <node> for_statement while_statement
 %type <ival> iter
 %type <node> barrier_statement
+%type <node> remote_statement
 
 %type <ival> eol
 
 %%
 
 program
-	: block { cur_nptr=node_create_program($1);  printf("program\n"); }
+	: HAI expression EOL block KTHXBYE EOL
+		{ cur_nptr=node_create_program($4); }
 	;
 
 block
-	: statement { $$=node_create_block($1);  printf("<block>\n"); }
-	| block statement { $$=node_block_add_stmt($1,$2); printf("<block-add>\n"); }
+	: statement { $$=node_create_block($1); }
+	| block statement { $$=node_block_add_stmt($1,$2); }
 	;
 
 statement
-	: declaration_statement { printf("statement\n"); }
+	: declaration_statement 
 	| expression_statement 
 	| assignment_statement 
 	| print_statement 
@@ -111,6 +117,7 @@ statement
 	| for_statement 
 	| while_statement 
 	| barrier_statement 
+	| remote_statement 
 	;
 
 declaration_statement
@@ -119,27 +126,27 @@ declaration_statement
 
 declaration
 	: IHASA IDENTIFIER 
-		{ $$=node_create_decl_stmt($2,0,0,0,0); printf("here 1\n"); }
+		{ $$=node_create_decl_stmt($2,0,0,0,0); }
 	| IHASA IDENTIFIER typespec
-		{ $$=node_create_decl_stmt($2,$3,0,0,0); printf("here 2\n"); }
+		{ $$=node_create_decl_stmt($2,$3,0,0,0); }
 	| IHASA IDENTIFIER init
-		{ $$=node_create_decl_stmt($2,0,$3,0,0); printf("here 3\n"); }
+		{ $$=node_create_decl_stmt($2,0,$3,0,0); }
 	| IHASA IDENTIFIER IMSHARINIT
-		{ $$=node_create_decl_stmt($2,0,0,0,1); printf("here 4\n"); }
+		{ $$=node_create_decl_stmt($2,0,0,0,1); }
 	| WEHASA IDENTIFIER 
-		{ $$=node_create_decl_stmt($2,0,0,1,0); printf("here 11\n"); }
+		{ $$=node_create_decl_stmt($2,0,0,1,0); }
 	| WEHASA IDENTIFIER typespec
-		{ $$=node_create_decl_stmt($2,$3,0,1,0); printf("here 12\n"); }
+		{ $$=node_create_decl_stmt($2,$3,0,1,0); }
 	| WEHASA IDENTIFIER init
-		{ $$=node_create_decl_stmt($2,0,$3,1,0); printf("here 13\n"); }
+		{ $$=node_create_decl_stmt($2,0,$3,1,0); }
 	| WEHASA IDENTIFIER IMSHARINIT
-		{ $$=node_create_decl_stmt($2,0,0,1,1); printf("here 14\n"); }
+		{ $$=node_create_decl_stmt($2,0,0,1,1); }
 	| declaration AN typespec 
-		{ $$=node_update_decl_stmt($1,$3,0,0,0); printf("here 5\n"); }
+		{ $$=node_update_decl_stmt($1,$3,0,0,0); }
 	| declaration AN init 
-		{ $$=node_update_decl_stmt($1,0,$3,0,0); printf("here 6\n"); }
+		{ $$=node_update_decl_stmt($1,0,$3,0,0); }
 	| declaration AN IMSHARINIT 
-		{ $$=node_update_decl_stmt($1,0,0,0,1); printf("here 7\n"); }
+		{ $$=node_update_decl_stmt($1,0,0,0,1); }
 	;
 
 typespec
@@ -150,21 +157,21 @@ typespec
 	;
 
 type
-	: NOOB { $$=T_VOID; printf("T_VOID_ARRAY\n"); }
-	| TROOF { $$=T_BOOLEAN; printf("T_BOOLEAN\n"); }
-	| NUMBR { $$=T_INTEGER; printf("T_INTGEGER\n"); }
-	| NUMBAR { $$=T_FLOAT; printf("T_FLOAT\n"); }
-	| YARN { $$=T_STRING; printf("T_STRING\n"); }
-	| BUKKIT { $$=T_STRUCT; printf("T_STRUCT\n"); }
+	: NOOB { $$=T_VOID; }
+	| TROOF { $$=T_BOOLEAN; }
+	| NUMBR { $$=T_INTEGER; }
+	| NUMBAR { $$=T_FLOAT; }
+	| YARN { $$=T_STRING; }
+	| BUKKIT { $$=T_STRUCT; }
 	;
 
 types
-	: NOOBS { $$=T_VOID_ARRAY; printf("T_VOID_ARRAY\n"); }
-	| TROOFS { $$=T_BOOLEAN_ARRAY; printf("T_BOOLEAN_ARRAY\n"); }
-	| NUMBRS { $$=T_INTEGER_ARRAY; printf("T_INTEGER_ARRAY\n"); }
-	| NUMBARS { $$=T_FLOAT_ARRAY; printf("T_FLOAT_ARRAY\n"); }
-	| YARNS { $$=T_STRING_ARRAY; printf("T_STRING_ARRAY\n"); }
-	| BUKKITS { $$=T_STRUCT_ARRAY; printf("T_STRUCT_ARRAY\n"); }
+	: NOOBS { $$=T_VOID_ARRAY; }
+	| TROOFS { $$=T_BOOLEAN_ARRAY; }
+	| NUMBRS { $$=T_INTEGER_ARRAY; }
+	| NUMBARS { $$=T_FLOAT_ARRAY; }
+	| YARNS { $$=T_STRING_ARRAY; }
+	| BUKKITS { $$=T_STRUCT_ARRAY; }
 	;
 
 init
@@ -189,13 +196,16 @@ expression
 
 primary_expression
    : target { $$=$1; }
-	| I_CONSTANT { $$=node_create_integer($1); printf("I_CONSTANT %d\n",$1); }
+	| I_CONSTANT { $$=node_create_integer($1); }
 	| F_CONSTANT { $$=node_create_float($1); }
 	| STRING_LITERAL { $$=node_create_string($1); }
    ;
 
 target
-	: IDENTIFIER { $$=node_create_identifier($1,0); }
+	: IDENTIFIER { $$=node_create_identifier($1,0,0,0); }
+	| target APOSTROPHEZ expression { $$=node_update_identifier($1,0,$3,0); }
+	| UR target 
+		{ $$=node_update_identifier($2,0,0,1); }
 	;
 
 unary_op
@@ -241,7 +251,7 @@ relational_op
    ;
 
 assignment_statement
-	: target R expression eol { $$=node_create_assign_stmt($1,$3); }
+	: expression R expression eol { $$=node_create_assign_stmt($1,$3); }
 	;
 
 print_statement
@@ -249,21 +259,21 @@ print_statement
 	;
 
 print
-	: VISIBLE primary_expression { $$=node_create_print_stmt($2); }
-	| print primary_expression { $$=node_update_print_stmt($1,$2); }
+	: VISIBLE expression { $$=node_create_print_stmt($2); }
+	| print expression { $$=node_update_print_stmt($1,$2); }
 	;
 
 if_statement
 	: ORLY eol if_block OIC eol
-		{ $$=node_create_if_stmt($3,0,0); printf("IF 1\n"); }
+		{ $$=node_create_if_stmt($3,0,0); }
 	| ORLY eol if_block elsif_clauses OIC eol
-		{ $$=node_create_if_stmt($3,$4,0); printf("IF 2\n"); }
+		{ $$=node_create_if_stmt($3,$4,0); }
 	| ORLY eol if_block elsif_clauses else_block OIC eol
-		{ $$=node_create_if_stmt($3,$4,$5); printf("IF 3\n"); }
+		{ $$=node_create_if_stmt($3,$4,$5); }
 	| ORLY eol elsif_clauses else_block OIC eol
-		{ $$=node_create_if_stmt(0,$3,$4); printf("IF 4\n"); }
+		{ $$=node_create_if_stmt(0,$3,$4); }
 	| ORLY eol else_block OIC eol
-		{ $$=node_create_if_stmt(0,0,$3); printf("IF 5\n"); }
+		{ $$=node_create_if_stmt(0,0,$3); }
 	;
 
 if_block
@@ -284,12 +294,12 @@ elsif_clause
 	;
 
 switch_statement
-	: WTF eol block OIC eol { $$=node_create_switch_stmt($3); printf("<wtf>\n"); }
+	: WTF eol block OIC eol { $$=node_create_switch_stmt($3); }
 	;
 
 case_statement
-	: OMG expression eol { $$=node_create_case_stmt($2); printf("<omg>\n"); }
-	| OMGWTF eol { $$=node_create_case_stmt(0); printf("<omgwtf>\n"); }
+	: OMG expression eol { $$=node_create_case_stmt($2); }
+	| OMGWTF eol { $$=node_create_case_stmt(0); }
 	;
 
 break_statement
@@ -315,6 +325,12 @@ barrier_statement
 	: HUGZ EOL { $$=node_create_barrier_stmt(); }
 	;
 
+remote_statement
+	: TXTMAHBFF expression EOL { $$=node_create_remote_stmt($2,0); }
+	| TXTMAHBFF expression ANSTUFF EOL { $$=node_create_remote_stmt($2,1); }
+	| TTYL EOL { $$=node_create_remote_stmt(0,0); }
+	;
+
 eol
 	: EOL
 	| eol EOL
@@ -323,9 +339,11 @@ eol
 %%
 #include <stdio.h>
 
+extern int __linenum;
+
 void yyerror(const char *s)
 {
 	fflush(stdout);
-	fprintf(stderr, "*** %s\n", s);
+	fprintf(stderr, "*** %d: %s\n", __linenum,s);
 }
 
