@@ -63,6 +63,7 @@ clean:
 	rm -f *.o 
 	rm -f $(BIN_NAME)
 	rm -f compiler_gram.c compiler_gram.h compiler_scan.c y.output
+	rm -f a.out
 
 distclean: clean
 

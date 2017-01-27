@@ -330,6 +330,7 @@ node_create_program( node_t* block )
 	node_t* tmp = node_create();
 	tmp->ntyp = N_PROGRAM;
 	tmp->n_program.block = block;
+	block->n_block.main = 1;
 	return(tmp);
 }
 
@@ -340,6 +341,7 @@ node_create_block( node_t* stmt )
 	node_t* tmp = node_create();
 	tmp->ntyp = N_BLOCK;
 	tmp->n_block.stmts = stmt;
+	tmp->n_block.main = 0;
 	return(tmp);
 }
 

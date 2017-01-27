@@ -42,6 +42,8 @@ void cgen_program( FILE* fp, node_t* root )
 
 	fprintf(fp,"#include <lol.h>\n");
 	fprintf(fp,"long long _it =0;\n");
+	fprintf(fp,"long long _remote_pe = -1;\n");
+	fprintf(fp,"int _remote_hold = 0;\n");
 	fprintf(fp,"int main()\n");
 
 	cgen_block(fp,root->n_program.block);
@@ -58,7 +60,15 @@ void cgen_block( FILE* fp, node_t* nptr )
 
 	fprintf(fp,"{\n");
 
+	if (nptr->n_block.main) {
+		fprintf(fp,"shmem_init();\n");
+	}
+
 	for( ; stmt; stmt=stmt->next) cgen_stmt(fp,stmt);
+
+	if (nptr->n_block.main) {
+		fprintf(fp,"shmem_finalize();\n");
+	}
 
 	fprintf(fp,"}\n");
 }

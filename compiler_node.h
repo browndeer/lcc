@@ -215,6 +215,7 @@ typedef struct node_struct {
 
 		struct {
 			struct node_struct* stmts;
+			int main;
 		} _n_block;
 
 
