@@ -123,6 +123,10 @@ void cgen_stmt( FILE* fp, node_t* nptr )
 			cgen_remote_stmt(fp,nptr);
 			break;
 
+		case N_LOCK_STATEMENT:
+			cgen_lock_stmt(fp,nptr);
+			break;
+
 		default:
 			__error("missing statement node");
 
@@ -240,6 +244,9 @@ void cgen_decl_stmt( FILE* fp, node_t* nptr )
 		}
 
 	}
+
+	if (nptr->n_decl_stmt.shared) 
+		fprintf(fp,"static long _lock_%s = 0;\n",name);
 
 }
 
@@ -503,6 +510,38 @@ void cgen_remote_stmt( FILE* fp, node_t* nptr )
 	} else {
 		fprintf(fp,"_remote(0,0);\n");
 	}
+
+}
+
+
+void cgen_lock_stmt( FILE* fp, node_t* nptr )
+{
+	node_t* target = nptr->n_lock_stmt.target;
+	char* name = symbuf+target->n_ident.sym;
+	int remote = target->n_ident.remote;
+
+	switch (nptr->n_lock_stmt.lock_op) {
+		case L_TRYLOCK:
+			fprintf(fp,"_trylock(");
+			break;
+		case L_LOCK:
+			fprintf(fp,"_lock(");
+			break;
+		case L_UNLOCK:
+			fprintf(fp,"_unlock(");
+			break;
+		default:
+			__error("bad lock op");
+	}
+
+	fprintf(fp,"_lock_%s,",name);
+
+	if (remote)
+		fprintf(fp,"_remote_pe");
+	else
+		fprintf(fp,"_op_shmem_pe()");
+
+	fprintf(fp,");\n");
 
 }
 

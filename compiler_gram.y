@@ -1,4 +1,5 @@
 %token HAI KTHXBYE
+%token CANHAS
 %token IDENTIFIER I_CONSTANT F_CONSTANT STRING_LITERAL
 %token IHASA WEHASA
 %token ITZA ITZSRSLYA ITZLOTZA ITZSRSLYLOTZA 
@@ -44,6 +45,8 @@ int yylex(void);
    node_t* node;
 }
 
+%type <ival> HAI KTHXBYE
+%type <ival> CANHAS
 %type <ival> IDENTIFIER I_CONSTANT STRING_LITERAL
 %type <fval> F_CONSTANT 
 %type <ival> IHASA WEHASA
@@ -90,14 +93,22 @@ int yylex(void);
 %type <ival> iter
 %type <node> barrier_statement
 %type <node> remote_statement
+%type <node> lock_statement
 
-%type <ival> eol
+%type <ival> includes
 
 %%
 
 program
-	: HAI expression EOL block KTHXBYE EOL
+	: HAI expression EOL block KTHXBYE EOL 
 		{ cur_nptr=node_create_program($4); }
+	| HAI expression EOL includes block KTHXBYE EOL 
+		{ cur_nptr=node_create_program($5); }
+	;
+
+includes
+	: CANHAS IDENTIFIER '?' EOL
+	| includes CANHAS IDENTIFIER '?' EOL
 	;
 
 block
@@ -118,10 +129,11 @@ statement
 	| while_statement 
 	| barrier_statement 
 	| remote_statement 
+	| lock_statement
 	;
 
 declaration_statement
-	: declaration eol { $$=$1; }
+	: declaration EOL { $$=$1; }
 	;
 
 declaration
@@ -180,7 +192,7 @@ init
 	;
 
 expression_statement
-	: expression eol { $$=node_create_expr_stmt($1); }
+	: expression EOL { $$=node_create_expr_stmt($1); }
 	;
 
 expression
@@ -251,11 +263,11 @@ relational_op
    ;
 
 assignment_statement
-	: expression R expression eol { $$=node_create_assign_stmt($1,$3); }
+	: expression R expression EOL { $$=node_create_assign_stmt($1,$3); }
 	;
 
 print_statement
-	: print eol
+	: print EOL
 	;
 
 print
@@ -264,24 +276,26 @@ print
 	;
 
 if_statement
-	: ORLY eol if_block OIC eol
+	: ORLY EOL if_block OIC EOL
 		{ $$=node_create_if_stmt($3,0,0); }
-	| ORLY eol if_block elsif_clauses OIC eol
+	| ORLY EOL if_block else_block OIC EOL
+		{ $$=node_create_if_stmt($3,0,$4); }
+	| ORLY EOL if_block elsif_clauses OIC EOL
 		{ $$=node_create_if_stmt($3,$4,0); }
-	| ORLY eol if_block elsif_clauses else_block OIC eol
+	| ORLY EOL if_block elsif_clauses else_block OIC EOL
 		{ $$=node_create_if_stmt($3,$4,$5); }
-	| ORLY eol elsif_clauses else_block OIC eol
+	| ORLY EOL elsif_clauses else_block OIC EOL
 		{ $$=node_create_if_stmt(0,$3,$4); }
-	| ORLY eol else_block OIC eol
+	| ORLY EOL else_block OIC EOL
 		{ $$=node_create_if_stmt(0,0,$3); }
 	;
 
 if_block
-	: YARLY eol block { $$=$3; }
+	: YARLY EOL block { $$=$3; }
 	;
 
 else_block
-	: NOWAI eol block { $$=$3; }
+	: NOWAI EOL block { $$=$3; }
 	;
 
 elsif_clauses
@@ -290,16 +304,16 @@ elsif_clauses
 	;
 
 elsif_clause
-	: MEBBE expression eol block { $$=node_create_elsif_clause($2,$4); }
+	: MEBBE expression EOL block { $$=node_create_elsif_clause($2,$4); }
 	;
 
 switch_statement
-	: WTF eol block OIC eol { $$=node_create_switch_stmt($3); }
+	: WTF EOL block OIC EOL { $$=node_create_switch_stmt($3); }
 	;
 
 case_statement
-	: OMG expression eol { $$=node_create_case_stmt($2); }
-	| OMGWTF eol { $$=node_create_case_stmt(0); }
+	: OMG expression EOL { $$=node_create_case_stmt($2); }
+	| OMGWTF EOL { $$=node_create_case_stmt(0); }
 	;
 
 break_statement
@@ -331,10 +345,12 @@ remote_statement
 	| TTYL EOL { $$=node_create_remote_stmt(0,0); }
 	;
 
-eol
-	: EOL
-	| eol EOL
+lock_statement
+	: IMMESINWIF target EOL { $$=node_create_lock_stmt($2,L_TRYLOCK); }
+	| IMSRSLYMESINWIF target EOL { $$=node_create_lock_stmt($2,L_LOCK); }
+	| DUNMESINWIF target EOL { $$=node_create_lock_stmt($2,L_UNLOCK); }
 	;
+
 
 %%
 #include <stdio.h>

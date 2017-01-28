@@ -53,6 +53,7 @@ typedef enum {
 	N_WHILE_STATEMENT,
 	N_BARRIER_STATEMENT,
 	N_REMOTE_STATEMENT,
+	N_LOCK_STATEMENT,
 	N_BLOCK,
 	N_PROGRAM
 } node_type_t;
@@ -95,6 +96,12 @@ typedef enum {
 	T_STRING_ARRAY,
 	T_STRUCT_ARRAY
 } type_t;
+
+typedef enum {
+	L_TRYLOCK=1,
+	L_LOCK,
+	L_UNLOCK
+} lock_op_t;
 
 typedef struct node_struct {
 
@@ -198,6 +205,11 @@ typedef struct node_struct {
 			int hold;
 		} _n_remote_statement;
 
+		struct {
+			struct node_struct* target;
+			lock_op_t lock_op;
+		} _n_lock_statement;
+
 
 		/**
 		 *** clauses
@@ -247,6 +259,7 @@ typedef struct node_struct {
 #define n_for_stmt		_n_info._n_for_statement
 #define n_while_stmt		_n_info._n_while_statement
 #define n_remote_stmt	_n_info._n_remote_statement
+#define n_lock_stmt		_n_info._n_lock_statement
 #define n_block			_n_info._n_block
 #define n_program			_n_info._n_program
 
@@ -300,6 +313,8 @@ node_t* node_create_while_stmt(int loop_label, int iter, int loop_sym,
 node_t* node_create_barrier_stmt( void );
 
 node_t* node_create_remote_stmt( node_t* expr, int hold );
+
+node_t* node_create_lock_stmt( node_t* target, lock_op_t lock_op );
 
 node_t* node_alloc();
 void node_free(node_t* nptr);

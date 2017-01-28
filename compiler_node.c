@@ -488,4 +488,15 @@ node_create_remote_stmt( node_t* expr, int hold )
 }
 
 
+node_t*
+node_create_lock_stmt( node_t* target, lock_op_t lock_op )
+{
+	node_t* tmp = node_create();
+	tmp->ntyp = N_LOCK_STATEMENT;
+	tmp->n_lock_stmt.target = target;
+	tmp->n_lock_stmt.lock_op = lock_op;
+	return(tmp);
+}
+
+
 

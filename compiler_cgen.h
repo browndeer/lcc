@@ -39,6 +39,7 @@ void cgen_for_stmt( FILE* fp, node_t* nptr );
 void cgen_while_stmt( FILE* fp, node_t* nptr );
 void cgen_barrier_stmt( FILE* fp, node_t* nptr );
 void cgen_remote_stmt( FILE* fp, node_t* nptr );
+void cgen_lock_stmt( FILE* fp, node_t* nptr );
 
 #endif
 

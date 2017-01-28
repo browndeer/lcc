@@ -45,6 +45,7 @@ extern int sym_type(const char *);  /* returns type from symbol table */
 
 static void comment(void);
 static int check_type(void);
+static void eol(void);
 
 int __linenum = 1;
 
@@ -59,6 +60,8 @@ int __linenum = 1;
 
 "HAI"						{ return(HAI); }
 "KTHXBYE"				{ return(KTHXBYE); }
+
+"CAN HAS"				{ return(CANHAS); }
 
 "I HAS A"				{ return(IHASA); }
 "WE HAS A"				{ return(WEHASA); }
@@ -217,9 +220,10 @@ int __linenum = 1;
 												}
 
 "..."{WS}*"\n"				{ ++__linenum; }
-"\n"				{ ++__linenum; return EOL; }
-","				{ return EOL; }
+"\n"				{ ++__linenum; eol(); return EOL; }
+","				{ eol(); return EOL; }
 "!"				{ return BANG; }
+"?"				{ return '?'; }
 
 {WS}+					{ /* whitespace separates tokens */ }
 .					{ /* discard bad characters */ }
@@ -280,16 +284,29 @@ static void comment(void)
 
 static int check_type(void)
 {
-//    switch (sym_type(yytext))
-//    {
- //   case TYPEDEF_NAME:                /* previously defined */
- //       return TYPEDEF_NAME;
- //   case ENUMERATION_CONSTANT:        /* previously defined */
- //       return ENUMERATION_CONSTANT;
- //   default:                          /* includes undefined */
- //       return IDENTIFIER;
- //   }
 	return IDENTIFIER;
 }
 
+
+static void eol(void)
+{
+
+   int c;
+	int count = 0;
+	int newline = 0;
+
+   while ((c = input()) != 0) {
+
+		if (c == ' ') continue;
+		if (c == '\t') continue;
+		if (c == '\n') { ++__linenum; continue; }
+		if (c == ',') continue;
+
+		unput(c);
+
+		return;		
+		
+	}
+
+}
 
