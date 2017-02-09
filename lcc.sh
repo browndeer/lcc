@@ -146,7 +146,7 @@ main() {
 
 	if [ $arch_e32 -eq 1 ]; then
 
-		LC2C=./lc2c
+		LC2C=lc2c
 		CC=coprcc
 		CCFLAGS="-fhost -w -std=gnu99 -D__E32__"
 		DEFS=-DSHMEM_USE_CTIMER
@@ -155,7 +155,7 @@ main() {
 
 	else
 
-		LC2C=./lc2c
+		LC2C=lc2c
 		CC=gcc
 		CCFLAGS=-w
 		DEFS=
@@ -222,4 +222,4 @@ main() {
 
 }
 
-main 
+main $*
