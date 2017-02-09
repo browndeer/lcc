@@ -1,4 +1,4 @@
-# Makefile for lc2c2
+# Makefile for lcc
 
 CFLAGS=-g -O2 
 
@@ -12,8 +12,6 @@ datarootdir=${prefix}/share
 
 
 ######################################################################
-
-BIN_NAME = lc2c
 
 INSTALL_BIN_DIR=${exec_prefix}/bin
 INSTALL_LIB_DIR=${exec_prefix}/lib
@@ -33,13 +31,13 @@ LEXFLAGS =
 
 COMPILER_YYPREFIX = __compiler_
 
-all: $(BIN_NAME)
+all: lc2c lcc
 
 .SUFFIXES:
 .SUFFIXES: .l .y .c .o
 
-$(BIN_NAME): compiler_gram.c $(OBJS) 
-	$(CC) $(CFLAGS) -o $(BIN_NAME) $(INCS) $(OBJS) $(LIBS)
+lc2c: compiler_gram.c $(OBJS) 
+	$(CC) $(CFLAGS) -o lc2c $(INCS) $(OBJS) $(LIBS)
 
 compiler_gram.c: compiler_gram.y
 	$(YACC) $(YACCFLAGS) -p $(COMPILER_YYPREFIX) -d $<
@@ -50,20 +48,36 @@ compiler_scan.c: compiler_scan.l compiler_gram.c compiler_gram.h
 	$(LEX) $(LEXFLAGS) -P$(COMPILER_YYPREFIX) $<
 	mv lex.$(COMPILER_YYPREFIX).c compiler_scan.c
 
+stringify: stringify.c
+	$(CC) -o stringify stringify.c
+
+_lcc.inc: lcc.sh stringify.c
+	$(CC) -o stringify stringify.c
+	sed "s/LCC_BUILD_STRING/build $(DATE)/" lcc.sh > _tmp_lcc.sh
+	./stringify _tmp_lcc.sh _lcc.inc
+
+lcc: lcc.c _lcc.inc
+	$(CC) -o lcc lcc.c
+
 .c.o:
 	$(CC) $(CFLAGS) $(DEFS) $(INCS) -c $<
 
 install:
-	install -m 755 $(BIN_NAME) $(INSTALL_BIN_DIR)
+	test -d $(INSTALL_BIN_DIR) || install -m 755 -d $(INSTALL_BIN_DIR)
+	install -m 755 lc2c $(INSTALL_BIN_DIR)
+	install -m 755 lcc $(INSTALL_BIN_DIR)
+	test -d $(INSTALL_INCLUDE_DIR) || install -m 755 -d $(INSTALL_INCLUDE_DIR)
+	install -m 755 lol.h $(INSTALL_INCLUDE_DIR)
 
 uninstall:
-	rm -f $(INSTALL_BIN_DIR)/$(BIN_NAME)
+	rm -f $(INSTALL_BIN_DIR)/lc2c
 
 clean:
 	rm -f *.o 
-	rm -f $(BIN_NAME)
+	rm -f lc2c
 	rm -f compiler_gram.c compiler_gram.h compiler_scan.c y.output
 	rm -f a.out
+	rm -f stringify _lcc.inc _tmp_lcc.sh
 
 distclean: clean
 

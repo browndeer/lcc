@@ -1,6 +1,6 @@
-/* xclnm.h
+/* compiler.h
  *
- * Copyright (c) 2008-2010 Brown Deer Technology, LLC.  All Rights Reserved.
+ * Copyright (c) 2017 Brown Deer Technology, LLC.  All Rights Reserved.
  *
  * This software was developed by Brown Deer Technology, LLC.
  * For more information contact info@browndeertechnology.com
@@ -16,13 +16,6 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
-/* DAR */
-
-
-/*
- * Declares globals initialized by main assembler and referenced by yyparse
  */
 
 /* DAR */
@@ -69,8 +62,6 @@ extern size_t locbufsz;
 
 #define __locbuf_clear() locbufsz = 0; *locbuf = '\0';
 
-//#define __plb() __locbuf_append_string(yytext)
-//#define __rlb() printf("%d:|%s|\n",locbufsz,locbuf); locbufsz=0
 #define __plb() do {} while(0)
 #define __rlb() do {} while(0)
 

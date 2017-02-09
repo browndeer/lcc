@@ -1,7 +1,0 @@
-#!/bin/bash
-
-SHMEM_INC=-I../shmem/src
-SHMEM_LIB="-L../shmem/src/ -lshmem"
-
-./lc2c $1 > $1.c ; coprcc -fhost -fdynamic-calls -DSHMEM_USE_CTIMER -std=gnu99 -I. -I.. -I/usr/local/browndeer/coprthr2/include $SHMEM_INC -L/usr/local/browndeer/coprthr2/lib -lcoprthr2_dev -lcoprthr_hostcall -lesyscall -le-lib $SHMEM_LIB $1.c
-

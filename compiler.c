@@ -22,6 +22,14 @@
 
 #define COMPILER_VERSION_STRING "0.7"
 
+#define COPYRIGHT_NOTICE "Copyright (c) 2017 Brown Deer Technology, LLC.\n"
+
+#define GPL3_NOTICE "This program is free software; you may redistribute it" \
+	" under the terms of the GNU General Public License version 3 (GPLv3)." \
+	" This program has absolutely no warranty.\n"
+
+
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -30,41 +38,15 @@
 #include "compiler_node.h"
 #include "compiler_gram.h"
 
-/*
-struct type_entry {
-	int ival;
-	size_t sz;
-	char* c_type;
-	char* cl_type;
-};
-
-struct type_entry type_table[] = {
-	{ TYPEID_OPAQUE, 8, "void", "void" },
-	{ TYPEID_VOID, 0, "void", "void" },
-	{ TYPEID_CHAR, 1, "char", "char" },
-	{ TYPEID_SHORT, 2, "short", "short" },
-	{ TYPEID_INT, 4, "int", "int" },
-	{ TYPEID_LONG, 8, "long", "long" },
-	{ TYPEID_UCHAR, 1, "unsigned char", "uchar" },
-	{ TYPEID_USHORT, 2, "unsigned short", "ushort" },
-	{ TYPEID_UINT, 4, "unsigned int", "uint" },
-	{ TYPEID_ULONG, 8, "unsigned long", "ulong" },
-	{ TYPEID_FLOAT, 4, "float", "float" },
-	{ TYPEID_DOUBLE, 8, "double", "double" },
-};
-
-int ntypes = sizeof(type_table)/sizeof(struct type_entry);
-*/
-
 char* symbuf = 0;
 int symbuf_sz = 0;
 node_t* cur_nptr;
 
-char* typbuf[16384];
-int ntypbuf = 0;
+//char* typbuf[16384];
+//int ntypbuf = 0;
 
-char* locbuf;
-size_t locbufsz;
+//char* locbuf;
+//size_t locbufsz;
 
 
 int 
@@ -79,30 +61,7 @@ add_str( char* buf, int* sz, const char* s)
 	return(i);
 }
 
-
-int
-add_typedef( char* sym )
-{ typbuf[ntypbuf++] = sym; }
-
-int
-is_type(char* s)
-{
-	int i;
-	for(i=0;i<ntypbuf;i++) 
-		if (!strncmp(typbuf[i],s,256)) return(1);
-	return(0);
-}
-
-
-
-void fprintf_sym(FILE*, char*, int ll_style, int c_style);
-void fprintf_type( FILE*, node_t* arg ); 
-
-
 void cgen_program( FILE* fp, node_t* root );
-
-
-//int type_ival2index(int ival);
 
 extern FILE* __compiler_in;
 
@@ -162,8 +121,8 @@ int main( int argc, char** argv)
 	if (opt_version) {
 
 		printf("lc2c ( version " COMPILER_VERSION_STRING " )\n" );
-		printf("Copyright (c) 2017 Brown Deer Technology, LLC.\n");
-//		printf( GPL3_NOTICE );
+		printf( COPYRIGHT_NOTICE );
+		printf( GPL3_NOTICE );
 
 		exit(0);
 
@@ -186,8 +145,8 @@ int main( int argc, char** argv)
 
 	symbuf = (char*)malloc(STRBUFSIZE);
 	symbuf[symbuf_sz++] = '\0';
-	locbuf = (char*)malloc(262144);
-	locbufsz = 0;
+//	locbuf = (char*)malloc(262144);
+//	locbufsz = 0;
 
 	node_t* root = node_create();
 	cur_nptr = root;
@@ -211,13 +170,8 @@ int main( int argc, char** argv)
 
 	root = cur_nptr;
 
-//	if (opt_debug) {
-//		node_fprintf(stdout,root,0);
-//	}
-
 	fclose(__compiler_in);
 
-	
 
 	/* 
 	 *	open output file, use stdout if none specified
@@ -241,54 +195,4 @@ int main( int argc, char** argv)
 	fclose(fp);
 
 }
-
-
-
-//int type_ival2index(int ival) 
-//{
-//	int i;
-//	for(i=0;i<ntypes;i++) if (type_table[i].ival == ival) return(i);
-//	return(-1);
-//}
-
-
-void fprintf_sym( FILE* fp, char* sym, int ll_style, int c_style)
-{
-	char sbuf[1024];
-	char* s = sym;
-
-	if (!ll_style && (*s=='@' || *s=='%')) ++s;
-
-	strncpy(sbuf,s,1024);
-
-	if (c_style) {
-		if (!strncmp(sbuf,"__OpenCL_",9)) strncpy(sbuf,sbuf+9,1024);
-		size_t len = strnlen(sbuf,1024);
-		if (!strncmp(sbuf+len-7,"_kernel",7)) sbuf[len-7]='\0';
-	}
-
-	fprintf(fp,"%s",sbuf);
-}
-
-/*
-#define __error(msg) do { \
-	fprintf(stderr,"error: " msg "\n");  \
-	exit(-1); \
-	} while(0)
-
-void cgen_program( FILE* fp, node_t* root )
-{
-	fprintf(stderr,"%d\n",root->ntyp);
-
-	if (root->ntyp != N_PROGRAM) __error("missing program node");
-
-	fprintf(fp,"#include <lol.h>\n");
-	fprintf(fp,"int main()\n");
-
-//	cgen_block(root->n_program.block);
-
-}
-*/
-
-
 

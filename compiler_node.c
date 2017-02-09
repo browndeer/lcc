@@ -1,5 +1,6 @@
-/* xclnm_node.c
+/* compiler_node.c
  *
+ * Copyright (c) 2017 Brown Deer Technology, LLC.  All Rights Reserved.
  * Copyright (c) 2008-2010 Brown Deer Technology, LLC.  All Rights Reserved.
  *
  * This software was developed by Brown Deer Technology, LLC.
@@ -23,8 +24,7 @@
 
 /*
  * Defines the nodes used to for a tree representation of the assembly
- * code.  The style/design follows that used in PCC (Portable C Compiler),
- * but is much simpler - there is much less to represent in assembly.
+ * code.  The style/design follows that used in PCC (Portable C Compiler).
  */
 
 /* DAR */
@@ -37,6 +37,8 @@
 #include "compiler_gram.h"
 
 extern char* symbuf;
+
+extern int __use_shmem;
 
 node_t* 
 node_alloc()
@@ -201,6 +203,8 @@ node_create_identifier( int sym, int typ, node_t* expr, int remote )
 	tmp->n_ident.expr = expr;
 	tmp->n_ident.remote = remote;
 
+	if(remote) __use_shmem = 1;
+
 	return(tmp);
 }
 
@@ -211,6 +215,8 @@ node_update_identifier( node_t* nptr, int typ, node_t* expr, int remote )
 	if (typ) nptr->n_ident.typ = typ;
 	if (expr) nptr->n_ident.expr = expr;
 	if(remote) nptr->n_ident.remote = remote;
+
+	if(remote) __use_shmem = 1;
 
 	return(nptr);
 }
@@ -298,6 +304,9 @@ node_create_decl_stmt( int sym, type_t typ, node_t* init,
 	tmp->n_decl_stmt.init = init;
 	tmp->n_decl_stmt.symmetric = symmetric;
 	tmp->n_decl_stmt.shared = shared;
+
+	if (symmetric || shared) __use_shmem = 1;
+
 	return(tmp);
 }
 
@@ -310,6 +319,9 @@ node_update_decl_stmt( node_t* nptr, type_t typ, node_t* init,
 	if (init) nptr->n_decl_stmt.init = init;
 	if (symmetric) nptr->n_decl_stmt.symmetric = symmetric;
 	if (shared) nptr->n_decl_stmt.shared = shared;
+
+	if (symmetric || shared) __use_shmem = 1;
+
 	return(nptr);
 }
 
@@ -473,6 +485,9 @@ node_create_barrier_stmt( void )
 {
 	node_t* tmp = node_create();
 	tmp->ntyp = N_BARRIER_STATEMENT;
+
+	__use_shmem = 1;
+
 	return(tmp);
 }
 
@@ -484,6 +499,9 @@ node_create_remote_stmt( node_t* expr, int hold )
 	tmp->ntyp = N_REMOTE_STATEMENT;
 	tmp->n_remote_stmt.expr = expr;
 	tmp->n_remote_stmt.hold = hold;
+
+	__use_shmem = 1;
+
 	return(tmp);
 }
 
@@ -495,6 +513,9 @@ node_create_lock_stmt( node_t* target, lock_op_t lock_op )
 	tmp->ntyp = N_LOCK_STATEMENT;
 	tmp->n_lock_stmt.target = target;
 	tmp->n_lock_stmt.lock_op = lock_op;
+
+	__use_shmem = 1;
+
 	return(tmp);
 }
 

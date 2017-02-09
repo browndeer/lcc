@@ -34,11 +34,14 @@
 	exit(-1); \
 	} while(0)
 
+int __use_shmem = 0;
 
 void cgen_program( FILE* fp, node_t* root )
 {
 
 	if (root->ntyp != N_PROGRAM) __error("missing program node");
+
+	if (__use_shmem) fprintf(fp,"#define USE_SHMEM\n");
 
 	fprintf(fp,"#include <lol.h>\n");
 	fprintf(fp,"long long _it =0;\n");
@@ -60,13 +63,13 @@ void cgen_block( FILE* fp, node_t* nptr )
 
 	fprintf(fp,"{\n");
 
-	if (nptr->n_block.main) {
+	if (__use_shmem && nptr->n_block.main) {
 		fprintf(fp,"shmem_init();\n");
 	}
 
 	for( ; stmt; stmt=stmt->next) cgen_stmt(fp,stmt);
 
-	if (nptr->n_block.main) {
+	if (__use_shmem && nptr->n_block.main) {
 		fprintf(fp,"shmem_finalize();\n");
 	}
 
@@ -348,7 +351,7 @@ void cgen_expr( FILE* fp, node_t* nptr )
 					case OP_EQ:
 					case OP_NEQ:
 						cgen_expr(fp,nptr->n_expr.args);
-						printf(",");
+						fprintf(fp,",");
 						cgen_expr(fp,nptr->n_expr.args->next);
 						break;
 

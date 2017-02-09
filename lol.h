@@ -2,9 +2,17 @@
 #ifndef _lol_h
 #define _lol_h
 
+#ifdef __E32__
+#include <host_stdio.h>
+#include <host_stdlib.h>
+#else
 #include <stdio.h>
 #include <stdlib.h>
+#endif
+
+#ifdef USE_SHMEM
 #include <shmem.h>
+#endif
 
 #if(0)
 typedef enum {
@@ -38,14 +46,7 @@ typedef long long val_t;
 
 void _cast_val_type( long long, long long );
 
-//val_t _op_not( long long );
-//val_t _op_eq( long long, long long );
-//val_t _op_neq( long long, long long );
-//val_t _op_add( long long, long long );
-//val_t _op_sub( long long, long long );
-
 void _cast_val_type( long long x, long long t) {}
-
 
 #define _print_val(x) ({ \
 		__builtin_choose_expr(\
@@ -59,7 +60,7 @@ void _cast_val_type( long long x, long long t) {}
 					printf("%f\n",x),\
 					__builtin_choose_expr(\
 						__builtin_types_compatible_p( typeof(x), const char[]),\
-						printf("%s\n",x),\			
+						printf("%s\n",x),\
 						printf("<unknown-type> ")\
 					) \
 				)\
@@ -68,13 +69,6 @@ void _cast_val_type( long long x, long long t) {}
 
 val_t _op_not( long long x) { return(!x); }
 
-//val_t _op_eq( long long x, long long y) { return( (x==y)? 1 : 0 ); }
-//val_t _op_neq( long long x, long long y) { return( (x==y)? 0 : 1 ); }
-//val_t _op_add( long long x, long long y) { return(x+y); }
-//val_t _op_sub( long long x, long long y) { return(x-y); }
-//val_t _op_mul( long long x, long long y) { return(x*y); }
-//val_t _op_div( long long x, long long y) { return(x/y); }
-
 #define _op_eq(x,y) (((x)==(y))? 1 : 0 )
 #define _op_neq(x,y) (((x)==(y))? 0 : 1 )
 #define _op_add(x,y) ((x)+(y))
@@ -82,17 +76,44 @@ val_t _op_not( long long x) { return(!x); }
 #define _op_mul(x,y) ((x)*(y))
 #define _op_div(x,y) ((x)/(y))
 
+
+
+long long _op_rand() { return (long long)rand(); }
+
+float _op_randf() { return (float)rand()/(float)(RAND_MAX); }
+
+#define _op_pow2(x) ((x)*(x))
+
+#define _op_sqrt(x) ({ \
+	typeof(x) tmp = __builtin_choose_expr(\
+		__builtin_types_compatible_p( typeof(x), long long),\
+		sqrt(x), \
+		__builtin_choose_expr(\
+			__builtin_types_compatible_p( typeof(x), float),\
+			sqrtf(x),\
+			(void)0\
+		)\
+	); tmp; })
+
+#define _op_inv(x) (1/(x))	
+
+#define _op_assign(dst,src) ({ \
+	dst = src; \
+	})
+
+
+
+#ifdef USE_SHMEM
+
 long long _op_shmem_npes() { return((long long)shmem_n_pes()); }
 long long _op_shmem_pe() { return((long long)shmem_my_pe()); }
 
 void _barrier() { shmem_barrier_all(); }
 
 typedef long mtx_t;
-#define _trylock(x)
-#define _lock(x)
-#define _unlock(x)
 
 #define _malloc(x) shmem_malloc(x)
+
 #define _shmem_malloc(x) shmem_malloc(x)
 
 #define _remote(pe,hold) { _remote_pe=pe; _remote_hold=hold; }
@@ -131,29 +152,6 @@ long long _op_remote_getf( float* x, int pe)
 		)\
 	); tmp; })
 
-long long _op_rand() { return (long long)rand(); }
-
-float _op_randf() { return (float)rand()/(float)(RAND_MAX); }
-
-#define _op_pow2(x) ((x)*(x))
-
-#define _op_sqrt(x) ({ \
-	typeof(x) tmp = __builtin_choose_expr(\
-		__builtin_types_compatible_p( typeof(x), long long),\
-		sqrt(x), \
-		__builtin_choose_expr(\
-			__builtin_types_compatible_p( typeof(x), float),\
-			sqrtf(x),\
-			(void)0\
-		)\
-	); tmp; })
-
-#define _op_inv(x) (1/(x))	
-
-#define _op_assign(dst,src) ({ \
-	dst = src; \
-	})
-
 #define _trylock(x,pe) ({ \
 	void* p = shmem_ptr(&x,pe); \
 	shmem_test_lock(p); \
@@ -168,6 +166,8 @@ float _op_randf() { return (float)rand()/(float)(RAND_MAX); }
 	void* p = shmem_ptr(&x,pe); \
 	shmem_clear_lock(p); \
 	})
+#endif
+
 
 #endif
 
