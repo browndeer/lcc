@@ -208,6 +208,10 @@ main() {
 #	
 #	done
 
+	if [ "x$src" == "x" ]; then
+		echo lcc: no input file
+		exit -1
+	fi
 
 	tmpcfile=`mktemp --tmpdir XXXXXX.c`
 
@@ -222,4 +226,4 @@ main() {
 
 }
 
-main $*
+main 
