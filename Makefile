@@ -31,7 +31,7 @@ LEXFLAGS =
 
 COMPILER_YYPREFIX = __compiler_
 
-all: lc2c lcc
+all: lc2c lcc lol
 
 .SUFFIXES:
 .SUFFIXES: .l .y .c .o
@@ -59,6 +59,14 @@ _lcc.inc: lcc.sh stringify.c
 lcc: lcc.c _lcc.inc
 	$(CC) -o lcc lcc.c
 
+_lol.inc: lol.sh stringify.c
+	$(CC) -o stringify stringify.c
+	sed "s/LOL_BUILD_STRING/build $(DATE)/" lol.sh > _tmp_lol.sh
+	./stringify _tmp_lol.sh _lol.inc
+
+lol: lol.c _lol.inc
+	$(CC) -o lol lol.c
+
 .c.o:
 	$(CC) $(CFLAGS) $(DEFS) $(INCS) -c $<
 
@@ -66,6 +74,7 @@ install:
 	test -d $(INSTALL_BIN_DIR) || install -m 755 -d $(INSTALL_BIN_DIR)
 	install -m 755 lc2c $(INSTALL_BIN_DIR)
 	install -m 755 lcc $(INSTALL_BIN_DIR)
+	install -m 755 lol $(INSTALL_BIN_DIR)
 	test -d $(INSTALL_INCLUDE_DIR) || install -m 755 -d $(INSTALL_INCLUDE_DIR)
 	install -m 755 lol.h $(INSTALL_INCLUDE_DIR)
 
@@ -74,10 +83,10 @@ uninstall:
 
 clean:
 	rm -f *.o 
-	rm -f lc2c
+	rm -f lc2c lcc lol
 	rm -f compiler_gram.c compiler_gram.h compiler_scan.c y.output
 	rm -f a.out
-	rm -f stringify _lcc.inc _tmp_lcc.sh
+	rm -f stringify _lcc.inc _tmp_lcc.sh _lol.inc _tmp_lol.sh
 
 distclean: clean
 
