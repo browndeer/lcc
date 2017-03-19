@@ -31,6 +31,7 @@ void cgen_expr_stmt( FILE* fp, node_t* nptr );
 void cgen_expr( FILE* fp, node_t* nptr );
 void cgen_assign_stmt( FILE* fp, node_t* nptr );
 void cgen_print_stmt( FILE* fp, node_t* nptr );
+void cgen_input_stmt( FILE* fp, node_t* nptr );
 void cgen_if_stmt( FILE* fp, node_t* nptr );
 void cgen_switch_stmt( FILE* fp, node_t* nptr );
 void cgen_case_stmt( FILE* fp, node_t* nptr );

@@ -396,6 +396,24 @@ node_update_print_stmt( node_t* nptr, node_t* arg )
 
 
 node_t*
+node_create_input_stmt( node_t* arg )
+{
+	node_t* tmp = node_create();
+	tmp->ntyp = N_INPUT_STATEMENT;
+	tmp->n_input_stmt.args = arg;
+	return(tmp);
+}
+
+
+node_t*
+node_update_input_stmt( node_t* nptr, node_t* arg )
+{
+	node_insert_tail( nptr->n_input_stmt.args, arg );
+	return(nptr);
+}
+
+
+node_t*
 node_create_if_stmt(node_t* if_block,node_t* elsif_clauses, node_t* else_block)
 {
 	node_t* tmp = node_create();

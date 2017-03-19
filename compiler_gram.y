@@ -107,6 +107,7 @@ int yylex(void);
 %type <node> init
 %type <node> assignment_statement
 %type <node> print_statement print
+%type <node> input_statement input
 %type <node> if_statement
 %type <node> if_block else_block elsif_clauses elsif_clause
 %type <node> switch_statement case_statement
@@ -143,6 +144,7 @@ statement
 	| expression_statement 
 	| assignment_statement 
 	| print_statement 
+	| input_statement 
 	| if_statement 
 	| switch_statement 
 	| case_statement 
@@ -295,6 +297,15 @@ print_statement
 print
 	: VISIBLE expression { $$=node_create_print_stmt($2); }
 	| print expression { $$=node_update_print_stmt($1,$2); }
+	;
+
+input_statement
+	: input EOL
+	;
+
+input
+	: GIMMEH target { $$=node_create_input_stmt($2); }
+	| input target { $$=node_update_input_stmt($1,$2); }
 	;
 
 if_statement

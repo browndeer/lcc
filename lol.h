@@ -67,6 +67,25 @@ void _cast_val_type( long long x, long long t) {}
 			)\
 	); })
 
+#define _input_val(x) ({ \
+		__builtin_choose_expr(\
+			__builtin_types_compatible_p( typeof(x), int),\
+			scanf("%d",&x),\
+			__builtin_choose_expr(\
+				__builtin_types_compatible_p( typeof(x), long long),\
+				scanf("%lld",&x),\
+				__builtin_choose_expr(\
+					__builtin_types_compatible_p( typeof(x), float),\
+					scanf("%f",&x),\
+					__builtin_choose_expr(\
+						__builtin_types_compatible_p( typeof(x), char*),\
+						scanf("%s",x),\
+						printf("<unknown-type> ")\
+					) \
+				)\
+			)\
+	); })
+
 val_t _op_not( long long x) { return(!x); }
 
 #define _op_eq(x,y) (((x)==(y))? 1 : 0 )

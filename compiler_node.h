@@ -44,6 +44,7 @@ typedef enum {
 	N_DECLARATION_STATEMENT,
 	N_ASSIGNMENT_STATEMENT,
 	N_PRINT_STATEMENT,
+	N_INPUT_STATEMENT,
 	N_IF_STATEMENT,
 	N_ELSIF_CLAUSE,
 	N_SWITCH_STATEMENT,
@@ -171,6 +172,10 @@ typedef struct node_struct {
 		} _n_print_statement;
 
 		struct {
+			struct node_struct* args;
+		} _n_input_statement;
+
+		struct {
 			struct node_struct* if_block;
 			struct node_struct* elsif_clauses;
 			struct node_struct* else_block;
@@ -252,6 +257,7 @@ typedef struct node_struct {
 #define n_expr_stmt		_n_info._n_expression_statement
 #define n_assign_stmt	_n_info._n_assignment_statement
 #define n_print_stmt		_n_info._n_print_statement
+#define n_input_stmt		_n_info._n_input_statement
 #define n_if_stmt			_n_info._n_if_statement
 #define n_elsif_clause	_n_info._n_elsif_clause
 #define n_switch_stmt	_n_info._n_switch_statement
@@ -293,6 +299,9 @@ node_t* node_create_assign_stmt( node_t* target, node_t* expr );
 
 node_t* node_create_print_stmt( node_t* arg );
 node_t* node_update_print_stmt( node_t* nptr, node_t* arg );
+
+node_t* node_create_input_stmt( node_t* arg );
+node_t* node_update_input_stmt( node_t* nptr, node_t* arg );
 
 node_t* node_create_if_stmt(node_t* if_block, node_t* elsif_clauses,
 	node_t* else_block );

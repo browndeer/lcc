@@ -98,6 +98,10 @@ void cgen_stmt( FILE* fp, node_t* nptr )
 			cgen_print_stmt(fp,nptr);
 			break;
 
+		case N_INPUT_STATEMENT:
+			cgen_input_stmt(fp,nptr);
+			break;
+
 		case N_IF_STATEMENT:
 			cgen_if_stmt(fp,nptr);
 			break;
@@ -388,6 +392,19 @@ void cgen_print_stmt( FILE* fp, node_t* nptr )
 
 	for( ; arg; arg=arg->next) {
 		fprintf(fp,"_print_val(");
+		cgen_expr(fp,arg);
+		fprintf(fp,");\n");
+	}
+
+}
+
+
+void cgen_input_stmt( FILE* fp, node_t* nptr )
+{
+	node_t* arg = nptr->n_input_stmt.args; 
+
+	for( ; arg; arg=arg->next) {
+		fprintf(fp,"_input_val(");
 		cgen_expr(fp,arg);
 		fprintf(fp,");\n");
 	}

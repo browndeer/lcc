@@ -206,32 +206,32 @@ int __linenum = 1;
 								}
 
 {D}+{E}{FS}?				{ 
-									__compiler_lval.ival = atof(yytext); 
+									__compiler_lval.fval = atof(yytext); 
 									return F_CONSTANT;
 								}
 
 {D}*"."{D}+{E}?{FS}?		{ 
-									__compiler_lval.ival = atof(yytext); 
+									__compiler_lval.fval = atof(yytext); 
 									return F_CONSTANT;
 								}
 
 {D}+"."{E}?{FS}?			{
-									__compiler_lval.ival = atof(yytext); 
+									__compiler_lval.fval = atof(yytext); 
 									return F_CONSTANT;
 								}
 
 {HP}{H}+{P}{FS}?			{
-									__compiler_lval.ival = atof(yytext); 
+									__compiler_lval.fval = atof(yytext); 
 									return F_CONSTANT;
 								}
 
 {HP}{H}*"."{H}+{P}{FS}?			{
-											__compiler_lval.ival = atof(yytext); 
+											__compiler_lval.fval = atof(yytext); 
 											return F_CONSTANT;
 										}
 
 {HP}{H}+"."{P}{FS}?			{
-										__compiler_lval.ival = atof(yytext); 
+										__compiler_lval.fval = atof(yytext); 
 										return F_CONSTANT;
 									}
 
