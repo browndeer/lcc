@@ -164,6 +164,9 @@ main() {
 
 	fi
 
+	INCS+=$incs
+	LIBS+=$libs
+
 	OBJS=""
 
 	nobjs=0
@@ -222,7 +225,7 @@ main() {
 		cp $tmpcfile ${src/.lol/.c}
 	fi
 
-	chkerr $CC $CCFLAGS -o $outfile $tmpcfile $DEFS $INCS;
+	chkerr $CC $CCFLAGS -o $outfile $tmpcfile $DEFS $INCS $LIBS;
 
 }
 
