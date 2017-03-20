@@ -157,7 +157,7 @@ main() {
 
 		LC2C=lc2c
 		CC=gcc
-		CCFLAGS=-w
+		CCFLAGS="-w -std=gnu99"
 		DEFS=
 		INCS=-I/usr/local/browndeer/include
 		LIBS=
