@@ -36,6 +36,8 @@
 
 int __use_shmem = 0;
 
+int __remote_flag = 0;
+
 void cgen_program( FILE* fp, node_t* root )
 {
 
@@ -136,6 +138,17 @@ void cgen_stmt( FILE* fp, node_t* nptr )
 
 		default:
 			__error("missing statement node");
+
+	}
+
+	if (__remote_flag) {
+
+		if (__remote_flag == 1) {
+			fprintf(fp,"_remote(-1,0);\n");
+			__remote_flag = 0;
+		}
+
+		if (__remote_flag < 3) __remote_flag--;
 
 	}
 
@@ -302,12 +315,31 @@ void cgen_expr( FILE* fp, node_t* nptr )
 	switch(nptr->ntyp) {
 
 		case N_IDENTIFIER:
-			if (nptr->n_ident.expr) {
-				fprintf(fp,"%s[",symbuf+nptr->n_ident.sym);
-				cgen_expr(fp,nptr->n_ident.expr);
-				fprintf(fp,"]");
+
+			if ( nptr->n_ident.remote == 1) {
+
+				fprintf(fp,"_op_remote_get( &");
+
+				if (nptr->n_ident.expr) {
+					fprintf(fp,"%s[",symbuf+nptr->n_ident.sym);
+					cgen_expr(fp,nptr->n_ident.expr);
+					fprintf(fp,"]");
+				} else {
+					fprintf(fp,"%s",symbuf+nptr->n_ident.sym);
+				}
+
+				fprintf(fp,",_remote_pe)");
+		
 			} else {
-				fprintf(fp,"%s",symbuf+nptr->n_ident.sym);
+
+				if (nptr->n_ident.expr) {
+					fprintf(fp,"%s[",symbuf+nptr->n_ident.sym);
+					cgen_expr(fp,nptr->n_ident.expr);
+					fprintf(fp,"]");
+				} else {
+					fprintf(fp,"%s",symbuf+nptr->n_ident.sym);
+				}
+
 			}
 			break;
 
@@ -376,13 +408,48 @@ void cgen_expr( FILE* fp, node_t* nptr )
 
 void cgen_assign_stmt( FILE* fp, node_t* nptr )
 {
-	cgen_expr(fp,nptr->n_assign_stmt.target);
 
-	fprintf(fp," = ");
+	node_t* target = nptr->n_assign_stmt.target;
 
-	cgen_expr(fp,nptr->n_assign_stmt.expr);
+	if (target->ntyp != N_IDENTIFIER) 
+		__error("bad target of assignment");
 
-	fprintf(fp,";\n");
+	if (target->n_ident.remote == 1 ) {
+
+		fprintf(fp,"_op_remote_set( &");
+
+		if (target->n_ident.expr) {
+			fprintf(fp,"%s[",symbuf+target->n_ident.sym);
+			cgen_expr(fp,target->n_ident.expr);
+			fprintf(fp,"]");
+		} else {
+			fprintf(fp,"%s",symbuf+target->n_ident.sym);
+		}
+
+		fprintf(fp,",");
+
+		cgen_expr(fp,nptr->n_assign_stmt.expr);
+
+		fprintf(fp,",_remote_pe);\n");
+		
+	} else {
+
+		if (target->n_ident.expr) {
+			fprintf(fp,"%s[",symbuf+target->n_ident.sym);
+			cgen_expr(fp,target->n_ident.expr);
+			fprintf(fp,"]");
+		} else {
+			fprintf(fp,"%s",symbuf+target->n_ident.sym);
+		}
+
+		fprintf(fp," = ");
+
+		cgen_expr(fp,nptr->n_assign_stmt.expr);
+
+		fprintf(fp,";\n");
+
+	}
+
 }
 
 
@@ -521,14 +588,48 @@ void cgen_barrier_stmt( FILE* fp, node_t* nptr )
 void cgen_remote_stmt( FILE* fp, node_t* nptr )
 {
 
-	char* loop_sym_name = symbuf+nptr->n_for_stmt.loop_sym;
+	int stmt_type;
 
-	if (nptr->n_remote_stmt.expr) {
-		fprintf(fp,"_remote(");
-		cgen_expr(fp,nptr->n_remote_stmt.expr);
-		fprintf(fp,",%d);\n",nptr->n_remote_stmt.hold);
+	if ( nptr->n_remote_stmt.expr) {
+		if ( nptr->n_remote_stmt.hold == 0 ) {
+			stmt_type = 1;
+		} else {
+			stmt_type = 2;
+		}
 	} else {
-		fprintf(fp,"_remote(0,0);\n");
+		stmt_type = 3;
+	}
+
+	if ( (__remote_flag > 0) && (stmt_type < 3) )
+		__error("nested remote predication");
+
+	if ( (__remote_flag < 3) && (stmt_type == 3) )
+		__error("bad remote predication");
+
+
+	switch (stmt_type) {
+
+		case 1:
+			fprintf(fp,"_remote(");
+			cgen_expr(fp,nptr->n_remote_stmt.expr);
+			fprintf(fp,",0);\n");
+			__remote_flag = 2;
+			break;
+
+		case 2:
+			fprintf(fp,"_remote(");
+			cgen_expr(fp,nptr->n_remote_stmt.expr);
+			fprintf(fp,",1);\n");
+			__remote_flag = 3;
+			break;
+
+		case 3:
+			fprintf(fp,"_remote(-1,0);\n");
+			__remote_flag = 0;
+			break;
+
+		default:
+			__error("internal error");
 	}
 
 }
