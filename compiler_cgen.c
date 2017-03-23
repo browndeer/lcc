@@ -309,6 +309,108 @@ const char* op_name[] = {
 };
 
 
+// must return one of these
+/*
+typedef enum {
+   T_VOID,
+   T_BOOLEAN,
+   T_INTEGER,
+   T_FLOAT,
+   T_STRING,
+   T_STRUCT,
+   T_VOID_ARRAY,
+   T_BOOLEAN_ARRAY,
+   T_INTEGER_ARRAY,
+   T_FLOAT_ARRAY,
+   T_STRING_ARRAY,
+   T_STRUCT_ARRAY
+} type_t;
+*/
+type_t get_expr_type( node_t* nptr )
+{
+
+	switch(nptr->ntyp) {
+
+		case N_IDENTIFIER:
+			{
+			type_t t = get_symtyp(nptr->n_ident.sym);
+//			printf("XXX identifier typ %d\n",t);
+			return t;
+			}
+
+		case N_INTEGER_CONSTANT:
+			return T_INTEGER;
+
+		case N_FLOAT_CONSTANT:
+			return T_FLOAT;
+
+		case N_STRING_CONSTANT:
+			return T_STRING;
+
+		case N_EXPRESSION:
+
+			switch (nptr->n_expr.op) {
+
+					case OP_RAND:
+						return T_INTEGER;
+
+					case OP_RANDF:
+						return T_FLOAT;
+
+					case OP_SHMEM_NPES:
+						return T_INTEGER;
+
+					case OP_SHMEM_PE:
+						return T_INTEGER;
+
+					case OP_INV:
+					case OP_POW2:
+					case OP_SQRT:
+					case OP_NOT:
+						return get_expr_type(nptr->n_expr.args);
+
+				   case OP_ADD:
+					case OP_SUB:
+					case OP_MUL:
+					case OP_DIV:
+					case OP_MAX:
+					case OP_MIN:
+						{
+							type_t t1 = get_expr_type(nptr->n_expr.args);
+							type_t t2 = get_expr_type(nptr->n_expr.args->next);
+							if (t1==T_FLOAT || t2==T_FLOAT) return T_FLOAT;
+							if (t1==T_INTEGER || t2==T_INTEGER) return T_INTEGER;
+							if (t1==T_BOOLEAN || t2==T_BOOLEAN) return T_BOOLEAN;
+							return T_VOID;
+						}
+						
+					case OP_MOD:
+						return get_expr_type(nptr->n_expr.args);
+
+					case OP_AND:
+					case OP_OR:
+					case OP_XOR:
+						return T_INTEGER;
+
+					case OP_EQ:
+					case OP_NEQ:
+						return T_BOOLEAN;
+
+					default:
+						return T_VOID;
+			}
+
+			break;
+
+		default:
+			__error("bad expression");
+
+	}
+
+}
+
+
+
 void cgen_expr( FILE* fp, node_t* nptr )
 {
 
@@ -453,15 +555,59 @@ void cgen_assign_stmt( FILE* fp, node_t* nptr )
 }
 
 
+
 void cgen_print_stmt( FILE* fp, node_t* nptr )
 {
 	node_t* arg = nptr->n_print_stmt.args; 
 
+	char* fmt = strdup("");
+	
 	for( ; arg; arg=arg->next) {
-		fprintf(fp,"_print_val(");
-		cgen_expr(fp,arg);
-		fprintf(fp,");\n");
+
+		type_t t = get_expr_type(arg);
+
+//		printf("XXX arg typ is %d\n",t);
+
+		switch (t) {
+			case T_INTEGER:
+				fmt = (char*)realloc(fmt,strlen(fmt)+3);
+				fmt = strcat(fmt,"%d");
+				break;	
+			case T_FLOAT:
+				fmt = (char*)realloc(fmt,strlen(fmt)+3);
+				fmt = strcat(fmt,"%f");
+				break;	
+			case T_STRING:
+				fmt = (char*)realloc(fmt,strlen(fmt)+3);
+				fmt = strcat(fmt,"%s");
+				break;	
+			default:
+				__error("bad print argument");
+		}
+
+//		fprintf(fp,"_print_val(");
+//		cgen_expr(fp,arg);
+//		fprintf(fp,");\n");
+
 	}
+
+	fmt = (char*)realloc(fmt,strlen(fmt)+3);
+	fmt = strcat(fmt,"\\n");
+
+	fprintf(fp,"printf(\"");
+	fprintf(fp,"%s",fmt);
+	fprintf(fp,"\"");
+
+	arg = nptr->n_print_stmt.args; 
+
+	for( ; arg; arg=arg->next) {
+		fprintf(fp,",");
+		cgen_expr(fp,arg);
+	}
+
+	fprintf(fp,");\n");
+
+	free(fmt);
 
 }
 

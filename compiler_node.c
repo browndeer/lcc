@@ -40,6 +40,51 @@ extern char* symbuf;
 
 extern int __use_shmem;
 
+struct symtyp_entry {
+	int sym;
+	int typ;
+	struct symtyp_entry* nxt;
+};
+
+struct symtyp_entry* symtyp_table = 0;
+
+void add_symtyp( int sym, int typ )
+{
+
+	struct symtyp_entry* tmp 
+		= (struct symtyp_entry*)malloc(sizeof(struct symtyp_entry));
+
+	tmp->sym = sym;
+	tmp->typ=typ;
+	tmp->nxt=0;
+
+	if (!symtyp_table) {
+		symtyp_table = tmp;
+//		printf("XXX add first\n");
+	} else {
+		struct symtyp_entry* p = symtyp_table;
+		for( ; p->nxt != 0; p=p->nxt ); // printf("XXX skipping\n");
+		p->nxt = tmp;
+//		printf("XXX add not first\n");
+	}	
+
+//printf("XXX add symtyp %d %d\n",sym,typ);
+
+}
+
+int get_symtyp( int sym )
+{
+	struct symtyp_entry* p = symtyp_table;
+	for( ; p != 0; p=p->nxt ) {
+//		printf("XXX loop p p->nxt %p %p\n",p,p->nxt);
+//		printf("XXX get_symtyp: compare sym %d %d\n",p->sym,sym);
+		if (p->sym == sym) return p->typ;
+//		printf("XXX get_symtyp: nxt is %p\n",p->nxt);
+	}
+	return -1;
+}
+
+
 node_t* 
 node_alloc()
 { return((node_t*)malloc(sizeof(node_t))); }
@@ -306,6 +351,8 @@ node_create_decl_stmt( int sym, type_t typ, node_t* init,
 	tmp->n_decl_stmt.shared = shared;
 
 	if (symmetric || shared) __use_shmem = 1;
+
+	add_symtyp(sym,typ);
 
 	return(tmp);
 }

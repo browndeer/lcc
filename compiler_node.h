@@ -354,5 +354,8 @@ node_t* node_set_arrn( node_t* type, int arrn );
 
 void node_fprintf(FILE* fp, node_t* nptr, int level );
 
+
+int get_symtyp(int sym);
+
 #endif
 
