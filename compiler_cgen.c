@@ -29,6 +29,8 @@
 #include "compiler_gram.h"
 #include "compiler_cgen.h"
 
+#define sign(x) ((x<0)?-1:1)
+
 #define __error(msg) do { \
 	fprintf(stderr,"error: " msg "\n");  \
 	exit(-1); \
@@ -694,18 +696,25 @@ void cgen_for_stmt( FILE* fp, node_t* nptr )
 
 	fprintf(fp,"for (");
 
-	fprintf(fp,"int %s = 0;",loop_sym_name);
+	fprintf(fp,"int %s=%d;",loop_sym_name,
+		nptr->n_for_stmt.loop_initval);
 
 	fprintf(fp,"_op_not(");
 	cgen_expr(fp,nptr->n_for_stmt.expr);
 	fprintf(fp,")");
 
-	if (nptr->n_for_stmt.loop_iter == +1)
+	int iter = nptr->n_for_stmt.loop_iter;
+
+	if (iter == +1)
 		fprintf(fp,"; %s++ )\n",loop_sym_name);
-	else if (nptr->n_for_stmt.loop_iter == -1)
+	else if (iter == -1)
 		fprintf(fp,"; %s-- )\n",loop_sym_name);
-	else
-		__error("bad loop iterator");
+//	else
+//		__error("bad loop iterator");
+	else if (sign(iter) == -1)
+		fprintf(fp,"; %s-=%d)\n",loop_sym_name,abs(iter));
+	else 
+		fprintf(fp,"; %s+=%d)\n",loop_sym_name,abs(iter));
 
 	cgen_block(fp,nptr->n_for_stmt.block);
 
@@ -715,6 +724,7 @@ void cgen_for_stmt( FILE* fp, node_t* nptr )
 void cgen_while_stmt( FILE* fp, node_t* nptr )
 {
 
+/*
 	char* loop_sym_name = symbuf+nptr->n_for_stmt.loop_sym;
 
 	fprintf(fp,"for (");
@@ -731,6 +741,22 @@ void cgen_while_stmt( FILE* fp, node_t* nptr )
 		__error("bad loop iterator");
 
 	cgen_block(fp,nptr->n_for_stmt.block);
+*/
+
+	if (nptr->n_while_stmt.loop_cond==1) {
+
+		fprintf(fp,"while(");
+
+		cgen_expr(fp,nptr->n_while_stmt.expr);
+
+		fprintf(fp,")\n");
+
+		cgen_block(fp,nptr->n_while_stmt.block);
+
+	} else {
+
+		__error("do-until not implemented");
+	}
 
 }
 

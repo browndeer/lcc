@@ -50,6 +50,7 @@ typedef enum {
 	N_SWITCH_STATEMENT,
 	N_CASE_STATEMENT,
 	N_BREAK_STATEMENT,
+	N_FOR_ITER,
 	N_FOR_STATEMENT,
 	N_WHILE_STATEMENT,
 	N_BARRIER_STATEMENT,
@@ -190,17 +191,26 @@ typedef struct node_struct {
 		} _n_case_statement;
 
 		struct {
-			int loop_label;
-			int loop_iter;
 			int loop_sym;
+			int loop_initval;
+			int loop_iter;
+		} _n_for_iter;
+
+		struct {
+			int loop_label;
+			int loop_sym;
+			int loop_initval;
+			int loop_iter;
+			int loop_cond;
 			struct node_struct* expr;
 			struct node_struct* block;
 		} _n_for_statement;
 
 		struct {
 			int loop_label;
-			int loop_iter;
-			int loop_sym;
+//			int loop_iter;
+//			int loop_sym;
+			int loop_cond;
 			struct node_struct* expr;
 			struct node_struct* block;
 		} _n_while_statement;
@@ -262,6 +272,7 @@ typedef struct node_struct {
 #define n_elsif_clause	_n_info._n_elsif_clause
 #define n_switch_stmt	_n_info._n_switch_statement
 #define n_case_stmt		_n_info._n_case_statement
+#define n_for_iter		_n_info._n_for_iter
 #define n_for_stmt		_n_info._n_for_statement
 #define n_while_stmt		_n_info._n_while_statement
 #define n_remote_stmt	_n_info._n_remote_statement
@@ -313,11 +324,16 @@ node_t* node_create_case_stmt( node_t* expr );
 
 node_t* node_create_break_stmt( void );
 
-node_t* node_create_for_stmt(int loop_label, int iter, int loop_sym, 
-	node_t* expr, node_t* block );
+//node_t* node_create_for_stmt(int loop_label, int loop_sym, int initval, 
+//	int iter, node_t* expr, node_t* block );
+node_t* node_create_for_iter(int loop_sym, int loop_initval, int loop_iter);
+node_t* node_create_for_stmt(int loop_label, int loop_sym, int loop_initval, 
+	int loop_iter, int loop_cond, node_t* expr, node_t* block );
 
-node_t* node_create_while_stmt(int loop_label, int iter, int loop_sym, 
-	node_t* expr, node_t* block );
+//node_t* node_create_while_stmt(int loop_label, int iter, int loop_sym, 
+//	node_t* expr, node_t* block );
+node_t* node_create_while_stmt(int loop_label, int loop_cond, node_t* expr,
+	node_t* block );
 
 node_t* node_create_barrier_stmt( void );
 

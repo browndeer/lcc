@@ -43,6 +43,7 @@
 %token WHATEVR WHATEVAR
 %token MAHFRENZ ME HUGZ TXTMAHBFF ANSTUFF TTYL UR MAH IMSHARINIT
 %token IMMESINWIF IMSRSLYMESINWIF DUNMESINWIF
+%token IMINYRLOOP IMOUTTAYRLOOP FRUM BY
 
 %token EOL ELLIPSIS BANG
 
@@ -90,6 +91,7 @@ int yylex(void);
 %type <ival> HOWIZI IFUSAYSO FOUNDYR GTFO IIZ
 %type <ival> MAHFRENZ ME HUGZ TXTMAHBFF ANSTUFF TTYL UR MAH IMSHARINIT
 %type <ival> IMMESINWIF IMSRSLYMESINWIF DUNMESINWIF
+%type <ival> IMINYRLOOP IMOUTTAYRLOOP
 
 %type <ival> EOL ELLIPSIS BANG
 
@@ -112,7 +114,7 @@ int yylex(void);
 %type <node> if_block else_block elsif_clauses elsif_clause
 %type <node> switch_statement case_statement
 %type <node> break_statement
-%type <node> for_statement while_statement
+%type <node> for_iter for_statement while_statement
 %type <ival> iter
 %type <node> barrier_statement
 %type <node> remote_statement
@@ -353,19 +355,36 @@ break_statement
 	: GTFO EOL { $$=node_create_break_stmt(); }
 	;
 
+for_iter
+	: iter IDENTIFIER FRUM I_CONSTANT BY I_CONSTANT 
+		{ $$=node_create_for_iter($2,$4,($1)*($6)); }
+	| iter IDENTIFIER BY I_CONSTANT 
+		{ $$=node_create_for_iter($2,0,($1)*($4)); }
+	| iter IDENTIFIER FRUM I_CONSTANT
+		{ $$=node_create_for_iter($2,$4,$1); }
+	| iter IDENTIFIER 
+		{ $$=node_create_for_iter($2,0,$1); }
+	;
+
 for_statement
-	: IMINYR IDENTIFIER iter YR IDENTIFIER TIL expression EOL block IMOUTTAYR IDENTIFIER EOL
-		{ $$=node_create_for_stmt($2,$3,$5,$7,$9); }
+	: IMINYR IDENTIFIER for_iter TIL expression EOL block IMOUTTAYR IDENTIFIER EOL
+		{ $$=node_create_for_stmt($2,($3)->n_for_iter.loop_sym,($3)->n_for_iter.loop_initval,($3)->n_for_iter.loop_iter,0,$5,$7); }
+	| IMINYRLOOP for_iter TIL expression EOL block IMOUTTAYRLOOP EOL
+		{ $$=node_create_for_stmt(0,($2)->n_for_iter.loop_sym,($2)->n_for_iter.loop_initval,($2)->n_for_iter.loop_iter,0,$4,$6); }
 	;
 
 while_statement
-	: IMINYR IDENTIFIER iter YR IDENTIFIER WILE expression EOL block IMOUTTAYR IDENTIFIER EOL
-		{ $$=node_create_while_stmt($2,$3,$5,$7,$9); }
+	: IMINYR IDENTIFIER WILE expression EOL block IMOUTTAYR IDENTIFIER EOL
+		{ $$=node_create_while_stmt($2,1,$4,$6); }
+	| IMINYRLOOP WILE expression EOL block IMOUTTAYRLOOP EOL
+		{ $$=node_create_while_stmt(0,1,$3,$5); }
 	;
 
 iter
 	: UPPIN { $$=+1; }
+	| UPPIN YR { $$=+1; }
 	| NERFIN { $$=-1; }
+	| NERFIN YR { $$=-1; }
 	;
 
 barrier_statement

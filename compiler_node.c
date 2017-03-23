@@ -512,33 +512,45 @@ node_create_break_stmt( void )
 
 
 node_t*
+node_create_for_iter( int loop_sym, int loop_initval, int loop_iter)
+{
+	node_t* tmp = node_create();
+	tmp->ntyp = N_FOR_ITER;
+	tmp->n_for_iter.loop_sym = loop_sym;
+	tmp->n_for_iter.loop_initval = loop_initval;
+	tmp->n_for_iter.loop_iter = loop_iter;
+	return(tmp);
+}
+
+
+node_t*
 node_create_for_stmt( 
-	int loop_label, int loop_iter, int loop_sym,
-   node_t* expr, node_t* block 
+	int loop_label, int loop_sym, int loop_initval, int loop_iter,
+   int loop_cond, node_t* expr, node_t* block 
 )
 {
 	node_t* tmp = node_create();
 	tmp->ntyp = N_FOR_STATEMENT;
-	tmp->n_while_stmt.loop_label = loop_label;
-	tmp->n_while_stmt.loop_iter = loop_iter;
-	tmp->n_while_stmt.loop_sym = loop_sym;
-	tmp->n_while_stmt.expr = expr;
-	tmp->n_while_stmt.block = block;
+	tmp->n_for_stmt.loop_label = loop_label;
+	tmp->n_for_stmt.loop_sym = loop_sym;
+	tmp->n_for_stmt.loop_initval = loop_initval;
+	tmp->n_for_stmt.loop_iter = loop_iter;
+	tmp->n_for_stmt.loop_cond = loop_cond;
+	tmp->n_for_stmt.expr = expr;
+	tmp->n_for_stmt.block = block;
 	return(tmp);
 }
 
 
 node_t*
 node_create_while_stmt( 
-	int loop_label, int loop_iter, int loop_sym,
-   node_t* expr, node_t* block 
+	int loop_label, int loop_cond, node_t* expr, node_t* block 
 )
 {
 	node_t* tmp = node_create();
 	tmp->ntyp = N_WHILE_STATEMENT;
 	tmp->n_while_stmt.loop_label = loop_label;
-	tmp->n_while_stmt.loop_iter = loop_iter;
-	tmp->n_while_stmt.loop_sym = loop_sym;
+	tmp->n_while_stmt.loop_cond = loop_cond;
 	tmp->n_while_stmt.expr = expr;
 	tmp->n_while_stmt.block = block;
 	return(tmp);

@@ -161,6 +161,10 @@ int __linenum = 1;
 "TIL"						{ return(TIL); }
 "WILE"					{ return(WILE); }
 "IM OUTTA YR"			{ return(IMOUTTAYR); }
+"IM IN YR LOOP"		{ return(IMINYRLOOP); }
+"IM OUTTA YR LOOP"	{ return(IMOUTTAYRLOOP); }
+"FRUM"					{ return(FRUM); }
+"BY"						{ return(BY); }
 
 "HOW IZ I"				{ return(HOWIZI); }
 "IF U SAY SO"			{ return(IFUSAYSO); }
