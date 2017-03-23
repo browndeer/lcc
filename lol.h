@@ -5,6 +5,7 @@
 #ifdef __E32__
 #include <host_stdio.h>
 #include <host_stdlib.h>
+#define printf(...) host_printf(__VA_ARGS__)
 #else
 #include <stdio.h>
 #include <stdlib.h>
@@ -146,7 +147,7 @@ void _op_remote_setf( float* x, float y, int pe )
 long long _op_remote_geti( long long* x, int pe)
 { return shmem_longlong_g(x,pe); }
 	
-long long _op_remote_getf( float* x, int pe)
+float _op_remote_getf( float* x, int pe)
 { return shmem_float_g(x,pe); }
 
 #define _op_remote_set( x, y, pe ) ({ \
