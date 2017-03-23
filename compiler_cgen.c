@@ -420,7 +420,12 @@ void cgen_expr( FILE* fp, node_t* nptr )
 
 			if ( nptr->n_ident.remote == 1) {
 
-				fprintf(fp,"_op_remote_get( &");
+				type_t t = get_symtyp(nptr->n_ident.sym);
+
+				if (t==T_FLOAT) 
+					fprintf(fp,"_op_remote_getf( &");
+				else
+					fprintf(fp,"_op_remote_geti( &");
 
 				if (nptr->n_ident.expr) {
 					fprintf(fp,"%s[",symbuf+nptr->n_ident.sym);
@@ -518,7 +523,12 @@ void cgen_assign_stmt( FILE* fp, node_t* nptr )
 
 	if (target->n_ident.remote == 1 ) {
 
-		fprintf(fp,"_op_remote_set( &");
+		type_t t = get_symtyp(target->n_ident.sym);
+
+		if (t==T_FLOAT) 
+			fprintf(fp,"_op_remote_setf( &");
+		else
+			fprintf(fp,"_op_remote_seti( &");
 
 		if (target->n_ident.expr) {
 			fprintf(fp,"%s[",symbuf+target->n_ident.sym);
