@@ -50,6 +50,8 @@ main() {
 
 	outfile="a.out"
 
+	incs=""
+	libs=""
 	opts=""
 	src=""
 
@@ -78,6 +80,21 @@ main() {
 			-k|--keep) keep=1;
 			;;
 
+         -I|--include) shift; incs+=" -I $1";
+         ;;
+
+         -I*|--include=*) incs+=" $1";
+         ;;
+
+         -L) shift; libs+=" -L $1";
+         ;;
+
+         -L*) libs+=" $1";
+         ;;
+
+         -l*) libs+=" $1";
+         ;;
+
 			*.lol) src+=" $1";
 			;;
 
@@ -93,6 +110,10 @@ main() {
 	done
 
 	debug ----------------------
+   debug INCS $incs
+   debug
+   debug LIBS $libs
+   debug
 	debug OPTS $opts 
 	debug
 	debug SRC $src
@@ -111,6 +132,9 @@ main() {
 
 	fi
 
+	INCS+=$incs
+	LIBS+=$libs
+
 	if [ "x$src" == "x" ]; then
 		echo lol: no input file
 		exit -1
@@ -118,8 +142,8 @@ main() {
 
 	tmpxfile=`mktemp --tmpdir XXXXXX.x`
 
-	debug $LCC $LCCFLAGS -o $tmpxfile $src
-	$LCC $LCCFLAGS -o $tmpxfile $src
+	debug $LCC $LCCFLAGS -o $tmpxfile $src $INCS $LIBS
+	$LCC $LCCFLAGS -o $tmpxfile $src $INCS $LIBS
 	if [ $? -ne 0 ];
 	then
 		echo lcc: error
