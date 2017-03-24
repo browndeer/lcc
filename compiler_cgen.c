@@ -583,7 +583,7 @@ void cgen_print_stmt( FILE* fp, node_t* nptr )
 		switch (t) {
 			case T_INTEGER:
 				fmt = (char*)realloc(fmt,strlen(fmt)+3);
-				fmt = strcat(fmt,"%d");
+				fmt = strcat(fmt,"%lld");
 				break;	
 			case T_FLOAT:
 				fmt = (char*)realloc(fmt,strlen(fmt)+3);
