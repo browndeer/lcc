@@ -164,6 +164,10 @@ void cgen_decl_stmt( FILE* fp, node_t* nptr )
 
 	if (nptr->n_decl_stmt.typ < T_VOID_ARRAY) {
 
+		if (nptr->n_decl_stmt.symmetric) {
+			fprintf(fp,"static ");
+		}
+
 		switch(nptr->n_decl_stmt.typ) {
 			case T_VOID:
 				fprintf(fp,"void %s",name);
