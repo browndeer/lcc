@@ -151,7 +151,7 @@ main() {
 		CCFLAGS="-fhost -w -std=gnu99 -D__E32__"
 		DEFS=-DSHMEM_USE_CTIMER
 		INCS="-I/usr/local/browndeer/include -I/usr/local/browndeer/coprthr2/include"
-		LIBS="-L/usr/local/browndeer/coprthr2/lib -lcoprthr2_dev -lcoprthr_hostcall -lesyscall -le-lib -L../../src/ -lshmem"
+		LIBS="-L/usr/local/browndeer/coprthr2/lib -lcoprthr2_dev -lcoprthr_hostcall -lesyscall -le-lib -L../../src/ -lshmem -lm"
 
 	else
 
@@ -160,7 +160,7 @@ main() {
 		CCFLAGS="-w -std=gnu99"
 		DEFS=
 		INCS=-I/usr/local/browndeer/include
-		LIBS=
+		LIBS="-lm"
 
 	fi
 

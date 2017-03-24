@@ -15,6 +15,8 @@
 #include <shmem.h>
 #endif
 
+#include <math.h>
+
 #if(0)
 typedef enum {
    VT_INTEGER, /**< An integer value. */
@@ -49,6 +51,7 @@ void _cast_val_type( long long, long long );
 
 void _cast_val_type( long long x, long long t) {}
 
+/*
 #define _print_val(x) ({ \
 		__builtin_choose_expr(\
 			__builtin_types_compatible_p( typeof(x), int),\
@@ -67,6 +70,7 @@ void _cast_val_type( long long x, long long t) {}
 				)\
 			)\
 	); })
+*/
 
 #define _input_val(x) ({ \
 		__builtin_choose_expr(\
@@ -95,8 +99,10 @@ val_t _op_not( long long x) { return(!x); }
 #define _op_sub(x,y) ((x)-(y))
 #define _op_mul(x,y) ((x)*(y))
 #define _op_div(x,y) ((x)/(y))
-
-
+#define _op_mod(x,y) ((x)%(y))
+#define _op_min(x,y) (((x)<(y))?(x):(y))
+#define _op_max(x,y) (((x)<(y))?(y):(x))
+#define _op_sqr(x)	((x)*(x))
 
 long long _op_rand() { return (long long)rand(); }
 
@@ -150,6 +156,7 @@ long long _op_remote_geti( long long* x, int pe)
 float _op_remote_getf( float* x, int pe)
 { return shmem_float_g(x,pe); }
 
+/*
 #define _op_remote_set( x, y, pe ) ({ \
 	__builtin_choose_expr(\
 		__builtin_types_compatible_p( typeof(x), long long*),\
@@ -171,6 +178,8 @@ float _op_remote_getf( float* x, int pe)
 			(void)0\
 		)\
 	); tmp; })
+*/
+
 
 #define _trylock(x,pe) ({ \
 	void* p = shmem_ptr(&x,pe); \
