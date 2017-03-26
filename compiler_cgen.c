@@ -48,8 +48,10 @@ void cgen_program( FILE* fp, node_t* root )
 	if (__use_shmem) fprintf(fp,"#define USE_SHMEM\n");
 
 	fprintf(fp,"#include <lol.h>\n");
-	fprintf(fp,"long long _it =0;\n");
-	fprintf(fp,"long long _remote_pe = -1;\n");
+//	fprintf(fp,"long long _it =0;\n");
+//	fprintf(fp,"long long _remote_pe = -1;\n");
+	fprintf(fp,"long _it =0;\n");
+	fprintf(fp,"long _remote_pe = -1;\n");
 	fprintf(fp,"int _remote_hold = 0;\n");
 	fprintf(fp,"int main()\n");
 
@@ -185,10 +187,12 @@ void cgen_decl_stmt( FILE* fp, node_t* nptr )
 				fprintf(fp,"void %s",name);
 				break;
 			case T_BOOLEAN:
-				fprintf(fp,"long long %s",name);
+//				fprintf(fp,"long long %s",name);
+				fprintf(fp,"long %s",name);
 				break;
 			case T_INTEGER:
-				fprintf(fp,"long long %s",name);
+//				fprintf(fp,"long long %s",name);
+				fprintf(fp,"long %s",name);
 				break;
 			case T_FLOAT:
 				fprintf(fp,"float %s",name);
@@ -223,10 +227,12 @@ void cgen_decl_stmt( FILE* fp, node_t* nptr )
 				fprintf(fp,"void* %s",name);
 				break;
 			case T_BOOLEAN_ARRAY:
-				fprintf(fp,"long long* %s",name);
+//				fprintf(fp,"long long* %s",name);
+				fprintf(fp,"long* %s",name);
 				break;
 			case T_INTEGER_ARRAY:
-				fprintf(fp,"long long* %s",name);
+//				fprintf(fp,"long long* %s",name);
+				fprintf(fp,"long* %s",name);
 				break;
 			case T_FLOAT_ARRAY:
 				fprintf(fp,"float* %s",name);
@@ -253,10 +259,12 @@ void cgen_decl_stmt( FILE* fp, node_t* nptr )
 					fprintf(fp," sizeof(void) * ");
 					break;
 				case T_BOOLEAN_ARRAY:
-					fprintf(fp," sizeof(long long) * ");
+//					fprintf(fp," sizeof(long long) * ");
+					fprintf(fp," sizeof(long) * ");
 					break;
 				case T_INTEGER_ARRAY:
-					fprintf(fp," sizeof(long long) * ");
+//					fprintf(fp," sizeof(long long) * ");
+					fprintf(fp," sizeof(long) * ");
 					break;
 				case T_FLOAT_ARRAY:
 					fprintf(fp," sizeof(float) * ");
@@ -602,15 +610,15 @@ void cgen_print_stmt( FILE* fp, node_t* nptr )
 
 		switch (t) {
 			case T_INTEGER:
-				fmt = (char*)realloc(fmt,strlen(fmt)+3);
-				fmt = strcat(fmt,"%lld ");
+				fmt = (char*)realloc(fmt,strlen(fmt)+5);
+				fmt = strcat(fmt,"%ld ");
 				break;	
 			case T_FLOAT:
-				fmt = (char*)realloc(fmt,strlen(fmt)+3);
+				fmt = (char*)realloc(fmt,strlen(fmt)+4);
 				fmt = strcat(fmt,"%f ");
 				break;	
 			case T_STRING:
-				fmt = (char*)realloc(fmt,strlen(fmt)+3);
+				fmt = (char*)realloc(fmt,strlen(fmt)+4);
 				fmt = strcat(fmt,"%s ");
 				break;	
 			default:
