@@ -57,7 +57,10 @@ typedef enum {
 	N_REMOTE_STATEMENT,
 	N_LOCK_STATEMENT,
 	N_BLOCK,
-	N_PROGRAM
+	N_PROGRAM,
+	N_LAMBDA_DEFINITION,
+	N_LAMBDA_STATEMENT,
+	N_RETURN_STATEMENT
 } node_type_t;
 
 typedef enum {
@@ -68,6 +71,8 @@ typedef enum {
 	OP_MOD,
 	OP_MAX,
 	OP_MIN,
+	OP_POWR,
+	OP_ROOT,
 	OP_INV,
 	OP_POW2,
 	OP_SQRT,
@@ -96,7 +101,8 @@ typedef enum {
 	T_INTEGER_ARRAY,
 	T_FLOAT_ARRAY,
 	T_STRING_ARRAY,
-	T_STRUCT_ARRAY
+	T_STRUCT_ARRAY,
+	T_LAMBDA
 } type_t;
 
 typedef enum {
@@ -145,7 +151,6 @@ typedef struct node_struct {
 			op_type_t op;
 			struct node_struct* args;
 		} _n_expression;
-
 
 		/***
 		 *** statememnts
@@ -225,6 +230,18 @@ typedef struct node_struct {
 			lock_op_t lock_op;
 		} _n_lock_statement;
 
+		struct {
+			int sym;
+			struct node_struct* block;
+		} _n_lambda_definition;
+
+		struct {
+			int sym;
+		} _n_lambda_statement;
+
+		struct {
+			struct node_struct* expr;
+		} _n_return_statement;
 
 		/**
 		 *** clauses
@@ -279,6 +296,9 @@ typedef struct node_struct {
 #define n_lock_stmt		_n_info._n_lock_statement
 #define n_block			_n_info._n_block
 #define n_program			_n_info._n_program
+#define n_lambda_def		_n_info._n_lambda_definition
+#define n_lambda_stmt	_n_info._n_lambda_statement
+#define n_return_stmt	_n_info._n_return_statement
 
 
 node_t* node_create_identifier( int sym, int typ, node_t* expr, int remote );
@@ -340,6 +360,11 @@ node_t* node_create_barrier_stmt( void );
 node_t* node_create_remote_stmt( node_t* expr, int hold );
 
 node_t* node_create_lock_stmt( node_t* target, lock_op_t lock_op );
+
+node_t* node_create_lambda_def(int sym, node_t* block );
+node_t* node_create_lambda_stmt(int sym );
+
+node_t* node_create_return_stmt( node_t* expr );
 
 node_t* node_alloc();
 void node_free(node_t* nptr);

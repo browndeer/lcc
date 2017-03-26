@@ -138,6 +138,18 @@ void cgen_stmt( FILE* fp, node_t* nptr )
 			cgen_lock_stmt(fp,nptr);
 			break;
 
+		case N_LAMBDA_DEFINITION:
+			cgen_lambda_def(fp,nptr);
+			break;
+
+		case N_LAMBDA_STATEMENT:
+			cgen_lambda_stmt(fp,nptr);
+			break;
+
+		case N_RETURN_STATEMENT:
+			cgen_return_stmt(fp,nptr);
+			break;
+
 		default:
 			__error("missing statement node");
 
@@ -298,6 +310,8 @@ const char* op_name[] = {
    "_op_mod",
    "_op_max",
    "_op_min",
+	"_op_powr",
+	"_op_root",
    "_op_inv",
    "_op_pow2",
    "_op_sqrt",
@@ -494,6 +508,8 @@ void cgen_expr( FILE* fp, node_t* nptr )
 					case OP_MOD:
 					case OP_MAX:
 					case OP_MIN:
+					case OP_POWR:
+					case OP_ROOT:
 					case OP_AND:
 					case OP_OR:
 					case OP_XOR:
@@ -587,15 +603,15 @@ void cgen_print_stmt( FILE* fp, node_t* nptr )
 		switch (t) {
 			case T_INTEGER:
 				fmt = (char*)realloc(fmt,strlen(fmt)+3);
-				fmt = strcat(fmt,"%lld");
+				fmt = strcat(fmt,"%lld ");
 				break;	
 			case T_FLOAT:
 				fmt = (char*)realloc(fmt,strlen(fmt)+3);
-				fmt = strcat(fmt,"%f");
+				fmt = strcat(fmt,"%f ");
 				break;	
 			case T_STRING:
 				fmt = (char*)realloc(fmt,strlen(fmt)+3);
-				fmt = strcat(fmt,"%s");
+				fmt = strcat(fmt,"%s ");
 				break;	
 			default:
 				__error("bad print argument");
@@ -852,4 +868,38 @@ void cgen_lock_stmt( FILE* fp, node_t* nptr )
 
 }
 
+
+void cgen_lambda_def( FILE* fp, node_t* nptr )
+{
+
+	char* name = symbuf+nptr->n_lambda_def.sym;
+
+	fprintf(fp,"auto %s = [&] ()\n",name);
+
+	cgen_block(fp,nptr->n_lambda_def.block);
+
+	fprintf(fp,";\n");
+	
+}
+
+
+void cgen_lambda_stmt( FILE* fp, node_t* nptr )
+{
+
+	char* name = symbuf+nptr->n_lambda_stmt.sym;
+
+	fprintf(fp,"_it = %s();\n",name);
+
+}
+
+void cgen_return_stmt( FILE* fp, node_t* nptr )
+{
+
+	fprintf(fp,"return ");
+
+	cgen_expr(fp,nptr->n_return_stmt.expr);
+
+	fprintf(fp,";\n");
+
+}
 

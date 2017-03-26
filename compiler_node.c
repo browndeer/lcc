@@ -598,3 +598,37 @@ node_create_lock_stmt( node_t* target, lock_op_t lock_op )
 
 
 
+node_t*
+node_create_lambda_def( int sym, node_t* block )
+{
+	node_t* tmp = node_create();
+	tmp->ntyp = N_LAMBDA_DEFINITION;
+	tmp->n_lambda_def.sym = sym;
+	tmp->n_lambda_def.block = block;
+
+	add_symtyp(sym,T_LAMBDA);
+
+	return(tmp);
+}
+
+
+node_t*
+node_create_lambda_stmt( int sym )
+{
+	node_t* tmp = node_create();
+	tmp->ntyp = N_LAMBDA_STATEMENT;
+	tmp->n_lambda_stmt.sym = sym;
+
+	return(tmp);
+}
+
+node_t*
+node_create_return_stmt( node_t* expr )
+{
+	node_t* tmp = node_create();
+	tmp->ntyp = N_RETURN_STATEMENT;
+	tmp->n_return_stmt.expr = expr;
+
+	return(tmp);
+}
+

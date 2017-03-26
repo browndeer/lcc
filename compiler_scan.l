@@ -126,6 +126,8 @@ int __linenum = 1;
 "FLIP OF"				{ return(FLIPOF); }
 "SQUAR OF"				{ return(SQUAROF); }
 "UNSQUAR OF"			{ return(UNSQUAROF); }
+"POWR OF"				{ return(POWROF); }
+"ROOT OF"				{ return(ROOTOF); }
 
 "BOTH OF"				{ return(BOTHOF); }
 "EITHER OF"				{ return(EITHEROF); }

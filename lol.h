@@ -51,27 +51,6 @@ void _cast_val_type( long long, long long );
 
 void _cast_val_type( long long x, long long t) {}
 
-/*
-#define _print_val(x) ({ \
-		__builtin_choose_expr(\
-			__builtin_types_compatible_p( typeof(x), int),\
-			printf("%d\n",x),\
-			__builtin_choose_expr(\
-				__builtin_types_compatible_p( typeof(x), long long),\
-				printf("%lld\n",x),\
-				__builtin_choose_expr(\
-					__builtin_types_compatible_p( typeof(x), float),\
-					printf("%f\n",x),\
-					__builtin_choose_expr(\
-						__builtin_types_compatible_p( typeof(x), const char[]),\
-						printf("%s\n",x),\
-						printf("<unknown-type> ")\
-					) \
-				)\
-			)\
-	); })
-*/
-
 #define _input_val(x) ({ \
 		__builtin_choose_expr(\
 			__builtin_types_compatible_p( typeof(x), int),\
@@ -101,6 +80,8 @@ val_t _op_not( long long x) { return(!x); }
 #define _op_div(x,y) ((x)/(y))
 #define _op_mod(x,y) ((x)%(y))
 #define _op_min(x,y) (((x)<(y))?(x):(y))
+#define _op_powr(x,y) (powf((x),(y)))
+#define _op_root(x,y) (powf((x),(1.0/(y))))
 #define _op_max(x,y) (((x)<(y))?(y):(x))
 #define _op_sqr(x)	((x)*(x))
 
@@ -110,6 +91,7 @@ float _op_randf() { return (float)rand()/(float)(RAND_MAX); }
 
 #define _op_pow2(x) ((x)*(x))
 
+/*
 #define _op_sqrt(x) ({ \
 	typeof(x) tmp = __builtin_choose_expr(\
 		__builtin_types_compatible_p( typeof(x), long long),\
@@ -120,6 +102,9 @@ float _op_randf() { return (float)rand()/(float)(RAND_MAX); }
 			(void)0\
 		)\
 	); tmp; })
+*/
+#define _op_sqrt(x) (sqrtf(x))
+
 
 #define _op_inv(x) (1/(x))	
 
@@ -156,31 +141,6 @@ long long _op_remote_geti( long long* x, int pe)
 float _op_remote_getf( float* x, int pe)
 { return shmem_float_g(x,pe); }
 
-/*
-#define _op_remote_set( x, y, pe ) ({ \
-	__builtin_choose_expr(\
-		__builtin_types_compatible_p( typeof(x), long long*),\
-		_op_remote_seti(x,y,pe),\
-		__builtin_choose_expr(\
-			__builtin_types_compatible_p( typeof(x), float*),\
-			_op_remote_setf(x,y,pe),\
-			(void)0\
-		)\
-	); })
-
-#define _op_remote_get(x,pe) ({ \
-	typeof(*x) tmp = __builtin_choose_expr(\
-		__builtin_types_compatible_p( typeof(x), long long*),\
-		_op_remote_geti(x,pe),\
-		__builtin_choose_expr(\
-			__builtin_types_compatible_p( typeof(x), float*),\
-			_op_remote_getf(x,pe),\
-			(void)0\
-		)\
-	); tmp; })
-*/
-
-
 #define _trylock(x,pe) ({ \
 	void* p = shmem_ptr(&x,pe); \
 	shmem_test_lock(p); \
@@ -195,8 +155,12 @@ float _op_remote_getf( float* x, int pe)
 	void* p = shmem_ptr(&x,pe); \
 	shmem_clear_lock(p); \
 	})
-#endif
 
+#else 
+
+#define _malloc(x) ((void*)malloc(x))
+
+#endif
 
 #endif
 

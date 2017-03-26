@@ -156,8 +156,10 @@ main() {
 	else
 
 		LC2C=lc2c
-		CC=gcc
-		CCFLAGS="-w -std=gnu99"
+#		CC=gcc
+#		CCFLAGS="-w -std=gnu99"
+		CC=g++
+		CCFLAGS="-w -std=c++14 -fpermissive"
 		DEFS=
 		INCS=-I/usr/local/browndeer/include
 		LIBS="-lm"

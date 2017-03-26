@@ -31,7 +31,7 @@
 %token ITZ THARIZ
 %token R AN MKAY
 %token SUMOF DIFFOF PRODUKTOF QUOSHUNTOF MODOF BIGGROF SMALLROF
-%token FLIPOF SQUAROF UNSQUAROF
+%token FLIPOF SQUAROF UNSQUAROF POWROF ROOTOF
 %token BOTHOF EITHEROF WONOF NOT ALLOF ANYOF
 %token BOTHSAEM DIFFRINT
 %token SMOOSH MAEK APOSTROPHEZ
@@ -80,7 +80,7 @@ int yylex(void);
 %type <ival> ITZ THARIZ
 %type <ival> R AN MKAY
 %type <ival> SUMOF DIFFOF PRODUKTOF QUOSHUNTOF MODOF BIGGROF SMALLROF
-%type <ival> FLIPOF SQUAROF UNSQUAROF
+%type <ival> FLIPOF SQUAROF UNSQUAROF POWROF ROOTOF
 %type <ival> BOTHOF EITHEROF WONOF NOT ALLOF ANYOF
 %type <ival> BOTHSAEM DIFFRINT
 %type <ival> SMOOSH MAEK APOSTROPHEZ
@@ -119,6 +119,7 @@ int yylex(void);
 %type <node> barrier_statement
 %type <node> remote_statement
 %type <node> lock_statement
+%type <node> lambda_definition lambda_statement return_statement
 
 %type <ival> includes
 
@@ -156,6 +157,9 @@ statement
 	| barrier_statement 
 	| remote_statement 
 	| lock_statement
+	| lambda_definition
+	| lambda_statement
+	| return_statement
 	;
 
 declaration_statement
@@ -274,6 +278,8 @@ binary_arithmetic_op
    | MODOF { $$=OP_MOD; }
    | BIGGROF { $$=OP_MAX; }
    | SMALLROF { $$=OP_MIN; }
+   | POWROF { $$=OP_POWR; }
+   | ROOTOF { $$=OP_ROOT; }
    ;
 
 binary_logical_op
@@ -403,6 +409,20 @@ lock_statement
 	| DUNMESINWIF target EOL { $$=node_create_lock_stmt($2,L_UNLOCK); }
 	;
 
+lambda_definition
+	: HOWIZI IDENTIFIER EOL block IFUSAYSO EOL
+		{ $$=node_create_lambda_def($2,$4); }
+	;
+
+lambda_statement
+	: IIZ IDENTIFIER EOL
+		{ $$=node_create_lambda_stmt($2); }
+	;
+
+return_statement
+	: FOUNDYR expression EOL
+		{ $$=node_create_return_stmt($2); }
+	;
 
 %%
 #include <stdio.h>

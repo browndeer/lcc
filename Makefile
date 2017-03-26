@@ -10,7 +10,6 @@ exec_prefix=${prefix}
 ### this useless define is needed to silence useless autoconf warning
 datarootdir=${prefix}/share
 
-
 ######################################################################
 
 INSTALL_BIN_DIR=${exec_prefix}/bin
@@ -89,4 +88,5 @@ clean:
 	rm -f stringify _lcc.inc _tmp_lcc.sh _lol.inc _tmp_lol.sh
 
 distclean: clean
+	rm -f Makefile
 
