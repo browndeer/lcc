@@ -10,12 +10,16 @@ exec_prefix=@exec_prefix@
 ### this useless define is needed to silence useless autoconf warning
 datarootdir=@datarootdir@
 
+shmem_include_path=@SHMEM_INCLUDE_PATH@
+shmem_lib_path=@SHMEM_LIB_PATH@
+
 ######################################################################
 
 INSTALL_BIN_DIR=${exec_prefix}/bin
 INSTALL_LIB_DIR=${exec_prefix}/lib
 INSTALL_INCLUDE_DIR=${prefix}/include
 INSTALL_MAN_DIR=${datarootdir}/man
+
 
 OBJS = compiler.o compiler_scan.o compiler_gram.o compiler_node.o \
 	compiler_cgen.o

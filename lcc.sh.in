@@ -151,7 +151,9 @@ main() {
 		CCFLAGS="-fhost -w -std=gnu99 -D__E32__"
 		DEFS=-DSHMEM_USE_CTIMER
 		INCS="-I/usr/local/browndeer/include -I/usr/local/browndeer/coprthr2/include"
-		LIBS="-L/usr/local/browndeer/coprthr2/lib -lcoprthr2_dev -lcoprthr_hostcall -lesyscall -le-lib -L../../src/ -lshmem -lm"
+		INCS+="-I@SHMEM_INCLUDE_PATH@"
+		LIBS="-L/usr/local/browndeer/coprthr2/lib -lcoprthr2_dev -lcoprthr_hostcall -lesyscall -le-lib -L../../src/ -lm"
+		LIBS+="-L@SHMEM_LIB_PATH@ -lshmem"
 
 	else
 
@@ -162,7 +164,9 @@ main() {
 		CCFLAGS="-w -std=c++14 -fpermissive"
 		DEFS=
 		INCS=-I/usr/local/browndeer/include
+		INCS+="-I@SHMEM_INCLUDE_PATH@"
 		LIBS="-lm"
+		LIBS+="-L@SHMEM_LIB_PATH@ -lshmem"
 
 	fi
 
@@ -172,46 +176,6 @@ main() {
 	OBJS=""
 
 	nobjs=0
-
-#	for f in $srcs
-#	do
-#
-#		tmpcfile=`mktemp --tmpdir XXXXXX.c`
-#		tmpobjfile=`mktemp --tmpdir XXXXXX.o`
-#
-#		objfile=""
-#
-#		case $f in
-#
-#			*.lol) 
-#				chkerr $LC2C -o $tmpcfile $f
-#				if [ $keep -eq 1 ];
-#				then
-#					cp $tmpcfile ${f/.lol/.c}
-#				fi
-#				chkerr $CC $CCFLAGS -c -o $tmpobjfile $tmpcfile $DEFS $INCS;
-#				objfile=${tmpcfile/.c/.o}
-#				if [ $keep -eq 1 ];
-#				then
-#					cp $tmpobjfile ${f/.lol/.o}
-#				fi
-#				;;
-#
-#		esac
-#
-#		if [ -e $tmpobjfile ];
-#		then
-#			nobjs+=1
-#			if [ $no_link -eq 1 ];
-#			then
-#				debug cp -f $tmpobjfile $objfile
-#				cp -f $tmpobjfile $objfile
-#			else
-#				OBJS+=" $tmpobjfile"
-#			fi
-#		fi
-#	
-#	done
 
 	if [ "x$src" == "x" ]; then
 		echo lcc: no input file

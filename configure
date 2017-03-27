@@ -623,6 +623,8 @@ ac_includes_default="\
 #endif"
 
 ac_subst_vars='LTLIBOBJS
+SHMEM_LIB_PATH
+SHMEM_INCLUDE_PATH
 LIBOBJS
 EGREP
 GREP
@@ -681,6 +683,8 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
+enable_shmem
+with_shmem
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1299,6 +1303,19 @@ if test -n "$ac_init_help"; then
      short | recursive ) echo "Configuration of FULL-PACKAGE-NAME VERSION:";;
    esac
   cat <<\_ACEOF
+
+Optional Features:
+  --disable-option-checking  ignore unrecognized --enable/--with options
+  --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
+  --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --enable-shmem          enable shmem support (default=yes)
+
+Optional Packages:
+  --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
+  --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-shmem-include=DIR
+                          specify shmem include path
+  --with-shmem-lib=DIR    specify shmem lbrary path
 
 Some influential environment variables:
   CXX         C++ compiler command
@@ -4067,7 +4084,60 @@ fi
 done
 
 
-ac_config_files="$ac_config_files Makefile"
+PWD=`pwd`
+
+SHMEM_INCLUDE_PATH=/usr/local/include
+SHMEM_LIB_PATH=/usr/local/lib
+
+### extract enable/disable options
+
+# Check whether --enable-shmem was given.
+if test "${enable_shmem+set}" = set; then :
+  enableval=$enable_shmem;
+else
+  enable_shmem=yes
+
+fi
+
+
+### extract with options
+
+# test for --with-shmem-include specification
+
+# Check whether --with-shmem was given.
+if test "${with_shmem+set}" = set; then :
+  withval=$with_shmem;
+			if test x$withval = xyes; then
+				as_fn_error $? "usage: --with-shmem=DIR" "$LINENO" 5
+			elif ! test -e $withval/shmem.h; then
+				as_fn_error $? "bad lib path, could not find shmem.h" "$LINENO" 5
+			else
+				SHMEM_INCLUDE_PATH=$withval;
+			fi;
+
+fi
+
+
+# test for --with-shmem-lib specification
+
+# Check whether --with-shmem was given.
+if test "${with_shmem+set}" = set; then :
+  withval=$with_shmem;
+			if test x$withval = xyes; then
+				as_fn_error $? "usage: --with-shmem=DIR" "$LINENO" 5
+			elif ! test -e $withval/libshmem.so; then
+				as_fn_error $? "bad lib path, could not find libshmem.so" "$LINENO" 5
+			else
+				SHMEM_LIB_PATH=$withval;
+			fi;
+
+fi
+
+
+
+
+
+ac_config_files="$ac_config_files Makefile lcc.sh"
 
 
 cat >confcache <<\_ACEOF
@@ -4777,6 +4847,7 @@ for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
+    "lcc.sh") CONFIG_FILES="$CONFIG_FILES lcc.sh" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
