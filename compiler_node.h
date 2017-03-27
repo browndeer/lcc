@@ -58,8 +58,9 @@ typedef enum {
 	N_LOCK_STATEMENT,
 	N_BLOCK,
 	N_PROGRAM,
-	N_LAMBDA_DEFINITION,
-	N_LAMBDA_STATEMENT,
+	N_FUNC_PROTOTYPE,
+	N_FUNC_DEFINITION,
+	N_FUNC_EXPRESSION,
 	N_RETURN_STATEMENT
 } node_type_t;
 
@@ -102,7 +103,7 @@ typedef enum {
 	T_FLOAT_ARRAY,
 	T_STRING_ARRAY,
 	T_STRUCT_ARRAY,
-	T_LAMBDA
+	T_FUNC
 } type_t;
 
 typedef enum {
@@ -232,12 +233,18 @@ typedef struct node_struct {
 
 		struct {
 			int sym;
+			struct node_struct* args;
+		} _n_func_prototype;
+
+		struct {
+			struct node_struct* proto;
 			struct node_struct* block;
-		} _n_lambda_definition;
+		} _n_func_definition;
 
 		struct {
 			int sym;
-		} _n_lambda_statement;
+			struct node_struct* args;
+		} _n_func_expression;
 
 		struct {
 			struct node_struct* expr;
@@ -296,8 +303,9 @@ typedef struct node_struct {
 #define n_lock_stmt		_n_info._n_lock_statement
 #define n_block			_n_info._n_block
 #define n_program			_n_info._n_program
-#define n_lambda_def		_n_info._n_lambda_definition
-#define n_lambda_stmt	_n_info._n_lambda_statement
+#define n_func_proto		_n_info._n_func_prototype
+#define n_func_def		_n_info._n_func_definition
+#define n_func_expr		_n_info._n_func_expression
 #define n_return_stmt	_n_info._n_return_statement
 
 
@@ -361,8 +369,13 @@ node_t* node_create_remote_stmt( node_t* expr, int hold );
 
 node_t* node_create_lock_stmt( node_t* target, lock_op_t lock_op );
 
-node_t* node_create_lambda_def(int sym, node_t* block );
-node_t* node_create_lambda_stmt(int sym );
+node_t* node_create_func_proto(int sym);
+node_t* node_update_func_proto(node_t* nptr, int sym );
+
+node_t* node_create_func_def(node_t* proto, node_t* block );
+
+node_t* node_create_func_expr(int sym );
+node_t* node_update_func_expr(node_t* nptr, node_t* arg);
 
 node_t* node_create_return_stmt( node_t* expr );
 
@@ -379,6 +392,7 @@ node_t* node_extract(node_t* nptr0, node_t* nptr1);
 node_t* node_delete(node_t* nptr);
 void node_destroy(node_t* nptr);
 node_t* node_create();
+node_t* node_copy( node_t* nptr );
 
 /*
 node_t* node_create_func_dec( node_t* rettype, int sym, node_t* args );

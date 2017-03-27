@@ -41,8 +41,8 @@ void cgen_while_stmt( FILE* fp, node_t* nptr );
 void cgen_barrier_stmt( FILE* fp, node_t* nptr );
 void cgen_remote_stmt( FILE* fp, node_t* nptr );
 void cgen_lock_stmt( FILE* fp, node_t* nptr );
-void cgen_lambda_def( FILE* fp, node_t* nptr );
-void cgen_lambda_stmt( FILE* fp, node_t* nptr );
+void cgen_func_def( FILE* fp, node_t* nptr );
+void cgen_func_expr( FILE* fp, node_t* nptr );
 void cgen_return_stmt( FILE* fp, node_t* nptr );
 
 #endif

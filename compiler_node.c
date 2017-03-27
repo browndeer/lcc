@@ -84,6 +84,39 @@ int get_symtyp( int sym )
 	return -1;
 }
 
+struct symtyp_entry* copy_symtyp_table( struct symtyp_entry* old_table )
+{
+	if (!old_table) return 0;
+
+	size_t sz = sizeof(struct symtyp_entry);
+
+	struct symtyp_entry* new_table = (struct symtyp_entry*)malloc(sz);
+	memcpy(new_table,old_table,sz);
+
+	struct symtyp_entry* q = new_table;
+
+	struct symtyp_entry* p = old_table->nxt;
+
+	for( ; p != 0; p=p->nxt ) {
+		q = q->nxt = (struct symtyp_entry*)malloc(sz);
+	}
+
+	q->nxt = 0;
+
+	return new_table;
+}
+
+
+void delete_symtyp_table( struct symtyp_entry* table )
+{
+	struct symtyp_entry* p = table;
+	while(p) {
+		struct symtyp_entry* tmp = p;
+		p=p->nxt;
+		free(tmp);
+	}
+}
+
 
 node_t* 
 node_alloc()
@@ -235,6 +268,18 @@ node_create()
 	tmp->ntyp = 0;
 	return(tmp);
 }
+
+
+node_t*
+node_copy( node_t* nptr )
+{
+	node_t* tmp = node_alloc();
+	memcpy(tmp,nptr,sizeof(node_t));
+	tmp->prev = tmp->next = 0;
+	tmp->ntyp = 0;
+	return(tmp);
+}
+
 
 
 node_t*
@@ -599,28 +644,68 @@ node_create_lock_stmt( node_t* target, lock_op_t lock_op )
 
 
 node_t*
-node_create_lambda_def( int sym, node_t* block )
+node_create_func_proto( int sym )
 {
 	node_t* tmp = node_create();
-	tmp->ntyp = N_LAMBDA_DEFINITION;
-	tmp->n_lambda_def.sym = sym;
-	tmp->n_lambda_def.block = block;
-
-	add_symtyp(sym,T_LAMBDA);
+	tmp->ntyp = N_FUNC_PROTOTYPE;
+	tmp->n_func_proto.sym = sym;
+	tmp->n_func_proto.args = 0;
 
 	return(tmp);
 }
 
 
 node_t*
-node_create_lambda_stmt( int sym )
+node_update_func_proto( node_t* nptr, int sym )
+{
+	if (nptr->n_func_proto.args)
+		node_insert_tail( nptr->n_func_proto.args, 
+			node_create_identifier(sym,0,0,0) );
+	else
+		nptr->n_func_proto.args = node_create_identifier(sym,0,0,0);
+
+	return(nptr);
+}
+
+
+node_t*
+node_create_func_def( node_t* proto, node_t* block )
 {
 	node_t* tmp = node_create();
-	tmp->ntyp = N_LAMBDA_STATEMENT;
-	tmp->n_lambda_stmt.sym = sym;
+	tmp->ntyp = N_FUNC_DEFINITION;
+	tmp->n_func_def.proto = proto;
+	tmp->n_func_def.block = block;
+
+	add_symtyp(proto->n_func_proto.sym,T_FUNC);
 
 	return(tmp);
 }
+
+
+node_t*
+node_create_func_expr( int sym )
+{
+	node_t* tmp = node_create();
+	tmp->ntyp = N_FUNC_EXPRESSION;
+	tmp->n_func_expr.sym = sym;
+
+	return(tmp);
+}
+
+
+node_t*
+node_update_func_expr( node_t* nptr, node_t* arg )
+{
+	if (nptr->n_func_expr.args) 
+		node_insert_tail( nptr->n_func_expr.args, arg );
+	else
+		nptr->n_func_expr.args = arg;
+
+//	printf("XXX add arg %p %p\n",nptr->n_func_expr.args,arg);
+
+	return(nptr);
+}
+
 
 node_t*
 node_create_return_stmt( node_t* expr )

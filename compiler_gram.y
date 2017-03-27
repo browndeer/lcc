@@ -119,7 +119,8 @@ int yylex(void);
 %type <node> barrier_statement
 %type <node> remote_statement
 %type <node> lock_statement
-%type <node> lambda_definition lambda_statement return_statement
+%type <node> func_prototype func_definition func_call func_expression 
+%type <node> return_statement
 
 %type <ival> includes
 
@@ -157,8 +158,7 @@ statement
 	| barrier_statement 
 	| remote_statement 
 	| lock_statement
-	| lambda_definition
-	| lambda_statement
+	| func_definition
 	| return_statement
 	;
 
@@ -234,6 +234,7 @@ expression
 	| unary_op expression { $$=node_create_expr1($1,$2); }
 	| binary_op expression AN expression { $$=node_create_expr2($1,$2,$4); }
 	| relational_op expression AN expression { $$=node_create_expr2($1,$2,$4); }
+	| func_expression
    ;
 
 primary_expression
@@ -409,20 +410,37 @@ lock_statement
 	| DUNMESINWIF target EOL { $$=node_create_lock_stmt($2,L_UNLOCK); }
 	;
 
-lambda_definition
-	: HOWIZI IDENTIFIER EOL block IFUSAYSO EOL
-		{ $$=node_create_lambda_def($2,$4); }
-	;
-
-lambda_statement
-	: IIZ IDENTIFIER EOL
-		{ $$=node_create_lambda_stmt($2); }
-	;
-
 return_statement
 	: FOUNDYR expression EOL
 		{ $$=node_create_return_stmt($2); }
 	;
+
+func_prototype
+	: HOWIZI IDENTIFIER 
+		{ $$=node_create_func_proto($2); }
+	| func_prototype YR IDENTIFIER
+		{ $$=node_update_func_proto($1,$3); }
+	| func_prototype AN YR IDENTIFIER
+		{ $$=node_update_func_proto($1,$4); }
+	;
+
+func_definition
+	: func_prototype MKAY EOL block IFUSAYSO EOL 
+		{ $$=node_create_func_def($1,$4); }
+	;
+
+func_call
+	: IIZ IDENTIFIER 
+		{ $$=node_create_func_expr($2); }
+	| func_call YR primary_expression
+		{ $$=node_update_func_expr($1,$3); }
+	| func_call AN YR primary_expression
+		{ $$=node_update_func_expr($1,$4); }
+	;
+func_expression
+	: func_call MKAY { $$=$1; }
+	;
+
 
 %%
 #include <stdio.h>

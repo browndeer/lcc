@@ -40,6 +40,26 @@ int __use_shmem = 0;
 
 int __remote_flag = 0;
 
+enum { UNKNOWN, FUNC_SCAN, FUNC_GEN, PROGRAM_GEN } __phase = UNKNOWN;
+
+struct func_def_entry {
+	node_t* func_def;
+	struct func_def_entry* nxt;
+};
+
+struct func_def_entry* func_def_list = 0;
+
+struct call_entry {
+	int sym;
+	char* fname;
+	char* typenc;
+	struct call_entry* nxt;
+};
+
+struct call_entry* call_list = 0;
+
+type_t __func_return_type = T_VOID;
+
 void cgen_program( FILE* fp, node_t* root )
 {
 
@@ -48,11 +68,85 @@ void cgen_program( FILE* fp, node_t* root )
 	if (__use_shmem) fprintf(fp,"#define USE_SHMEM\n");
 
 	fprintf(fp,"#include <lol.h>\n");
-//	fprintf(fp,"long long _it =0;\n");
-//	fprintf(fp,"long long _remote_pe = -1;\n");
 	fprintf(fp,"long _it =0;\n");
 	fprintf(fp,"long _remote_pe = -1;\n");
 	fprintf(fp,"int _remote_hold = 0;\n");
+
+	__phase = FUNC_SCAN;
+
+	FILE* devnull = fopen("/dev/null","w");
+	cgen_block(devnull,root->n_program.block);
+
+	__phase = FUNC_GEN;
+
+	struct call_entry* p = call_list;
+	for( ; p; p=p->nxt) {
+//		printf("XXX generate instance %s\n",p->fname);
+		struct func_def_entry* q = func_def_list;
+		for( ; q; q=q->nxt) {
+			if (p->sym == q->func_def->n_func_def.proto->n_func_proto.sym) {
+//				printf("XXX found func def needed\n");
+				node_t* proto = q->func_def->n_func_def.proto;
+				node_t* block = q->func_def->n_func_def.block;
+
+				__func_return_type = T_VOID;
+				cgen_block(devnull,block);
+				switch(__func_return_type) {
+					case T_VOID:	
+						fprintf(fp,"void ");
+						break;
+					case T_INTEGER:	
+						fprintf(fp,"int ");
+						break;
+					case T_FLOAT:	
+						fprintf(fp,"float ");
+						break;
+				}
+
+				fprintf(fp,"%s(",p->fname);
+
+
+				node_t* arg = proto->n_func_proto.args;
+				char* t = p->typenc;
+				for( ; arg; arg=arg->next, t++ ) {
+					if (t != p->typenc)
+						fprintf(fp,", ");
+					switch(*t) {
+						case 'i': fprintf(fp,"int "); break;
+						case 'f': fprintf(fp,"float "); break;
+						case 's': fprintf(fp,"char* "); break;
+						case 'I': fprintf(fp,"int* "); break;
+						case 'F': fprintf(fp,"float* "); break;
+						case 'S': fprintf(fp,"char** "); break;
+				}
+					fprintf(fp,"%s ",symbuf+arg->n_ident.sym);
+				}
+
+				fprintf(fp,")\n");
+
+/*
+//				node_t* arg = proto->n_func_proto.args;
+				arg = proto->n_func_proto.args;
+//				char* t = p->typenc;
+				t = p->typenc;
+				for( ; arg; arg=arg->next, t++ ) {
+					switch(*t) {
+						case 'i': fprintf(fp,"int "); break;
+						case 'f': fprintf(fp,"float "); break;
+						case 's': fprintf(fp,"char* "); break;
+					}
+					fprintf(fp,"%s ",symbuf+arg->n_ident.sym);
+					fprintf(fp,";\n");
+				}
+*/
+
+				cgen_block(fp,block);
+			}
+		}
+	}
+
+	__phase = PROGRAM_GEN;
+
 	fprintf(fp,"int main()\n");
 
 	cgen_block(fp,root->n_program.block);
@@ -140,12 +234,8 @@ void cgen_stmt( FILE* fp, node_t* nptr )
 			cgen_lock_stmt(fp,nptr);
 			break;
 
-		case N_LAMBDA_DEFINITION:
-			cgen_lambda_def(fp,nptr);
-			break;
-
-		case N_LAMBDA_STATEMENT:
-			cgen_lambda_stmt(fp,nptr);
+		case N_FUNC_DEFINITION:
+			cgen_func_def(fp,nptr);
 			break;
 
 		case N_RETURN_STATEMENT:
@@ -337,22 +427,11 @@ const char* op_name[] = {
 };
 
 
-// must return one of these
-/*
-typedef enum {
-   T_VOID,
-   T_BOOLEAN,
-   T_INTEGER,
-   T_FLOAT,
-   T_STRING,
-   T_STRUCT,
-   T_VOID_ARRAY,
-   T_BOOLEAN_ARRAY,
-   T_INTEGER_ARRAY,
-   T_FLOAT_ARRAY,
-   T_STRING_ARRAY,
-   T_STRUCT_ARRAY
-} type_t;
+/* 
+ *	must return one of these:
+ *	T_VOID, T_BOOLEAN, T_INTEGER, T_FLOAT, T_STRING, T_STRUCT, T_VOID_ARRAY,
+ * T_BOOLEAN_ARRAY, T_INTEGER_ARRAY, T_FLOAT_ARRAY, T_STRING_ARRAY,
+ * T_STRUCT_ARRAY
 */
 type_t get_expr_type( node_t* nptr )
 {
@@ -362,7 +441,6 @@ type_t get_expr_type( node_t* nptr )
 		case N_IDENTIFIER:
 			{
 			type_t t = get_symtyp(nptr->n_ident.sym);
-//			printf("XXX identifier typ %d\n",t);
 			return t;
 			}
 
@@ -430,13 +508,116 @@ type_t get_expr_type( node_t* nptr )
 
 			break;
 
+		case N_FUNC_EXPRESSION:
+			return T_FUNC;
+			break;
+
 		default:
-			__error("bad expression");
+			__error("oh noes, bad expression");
 
 	}
 
 }
 
+
+void cgen_func_expr( FILE* fp, node_t* nptr )
+{
+
+	int sym = nptr->n_func_expr.sym;
+
+	char* name = symbuf+sym;
+
+//	printf("XXX func expr sym %s(%d)\n",name,sym);
+
+	char* typenc = strdup("");
+
+	node_t* arg = nptr->n_func_expr.args; 
+
+	for( ; arg; arg=arg->next) {
+		type_t t = get_expr_type(arg);
+		switch (t) {
+			case T_INTEGER:
+				typenc = (char*)realloc(typenc,strlen(typenc)+2);
+				typenc = strcat(typenc,"i");
+				break;	
+			case T_FLOAT:
+				typenc = (char*)realloc(typenc,strlen(typenc)+2);
+				typenc = strcat(typenc,"f");
+				break;	
+			case T_STRING:
+				typenc = (char*)realloc(typenc,strlen(typenc)+2);
+				typenc = strcat(typenc,"s");
+				break;	
+			case T_INTEGER_ARRAY:
+				typenc = (char*)realloc(typenc,strlen(typenc)+2);
+				typenc = strcat(typenc,"I");
+				break;	
+			case T_FLOAT_ARRAY:
+				typenc = (char*)realloc(typenc,strlen(typenc)+2);
+				typenc = strcat(typenc,"F");
+				break;	
+			case T_STRING_ARRAY:
+				typenc = (char*)realloc(typenc,strlen(typenc)+2);
+				typenc = strcat(typenc,"S");
+				break;	
+			default:
+				__error("bad func argument");
+		}
+	}
+
+	char* fname = (char*)malloc(strlen(name)+strlen(typenc)+8);
+
+//	printf("XXX func expr typenc %s\n",typenc);
+
+	*fname = 0;
+	fname = strcat(fname,"_func_");
+	fname = strcat(fname,name);
+	fname = strcat(fname,"_");
+	fname = strcat(fname,typenc);
+
+//	printf("XXX func expr %s\n",fname);
+
+	if (__phase == FUNC_SCAN) {
+
+		struct call_entry* p = call_list;
+		for( ; p; p=p->nxt) {
+			if (!strcmp(p->fname,fname)) break;
+		}
+
+		if (!p) {
+			p = (struct call_entry*)malloc(sizeof(struct call_entry));
+			p->sym = sym;
+			p->fname = fname;
+			p->typenc = typenc;
+//			printf("XXX adding func expr %s\n",fname);
+			if (call_list) 
+				p->nxt = call_list;
+			else 
+				p->nxt = 0;
+			call_list = p;
+		} else {
+//			printf("XXX found func expr %s\n",fname);
+			free(fname);
+			free(typenc);
+		}
+
+	} else {
+
+		fprintf(fp,"%s(",fname);
+
+		node_t* arg = nptr->n_func_expr.args; 
+
+		for( ; arg; arg=arg->next) {
+			if (arg != nptr->n_func_expr.args)
+				fprintf(fp,", ");
+			cgen_expr(fp,arg);
+		}
+
+		fprintf(fp,")");
+
+	}
+
+}
 
 
 void cgen_expr( FILE* fp, node_t* nptr )
@@ -534,6 +715,10 @@ void cgen_expr( FILE* fp, node_t* nptr )
 
 			fprintf(fp,")");
 
+			break;
+
+		case N_FUNC_EXPRESSION:
+			cgen_func_expr(fp,nptr);
 			break;
 
 		default:
@@ -877,9 +1062,10 @@ void cgen_lock_stmt( FILE* fp, node_t* nptr )
 }
 
 
-void cgen_lambda_def( FILE* fp, node_t* nptr )
+void cgen_func_def( FILE* fp, node_t* nptr )
 {
 
+/*
 	char* name = symbuf+nptr->n_lambda_def.sym;
 
 	fprintf(fp,"auto %s = [&] ()\n",name);
@@ -887,21 +1073,39 @@ void cgen_lambda_def( FILE* fp, node_t* nptr )
 	cgen_block(fp,nptr->n_lambda_def.block);
 
 	fprintf(fp,";\n");
+*/
+
+	if (__phase == FUNC_SCAN) {
+
+		struct func_def_entry* p 
+			= (struct func_def_entry*)malloc(sizeof(struct func_def_entry));
+	
+		p->func_def = nptr;
+	
+		if (func_def_list)
+			p->nxt = func_def_list;
+		else
+			p->nxt = 0;
+	
+		func_def_list = p;
+
+		cgen_block(fp,nptr->n_func_def.block);	
+	}
 	
 }
 
 
-void cgen_lambda_stmt( FILE* fp, node_t* nptr )
-{
-
-	char* name = symbuf+nptr->n_lambda_stmt.sym;
-
-	fprintf(fp,"_it = %s();\n",name);
-
-}
-
 void cgen_return_stmt( FILE* fp, node_t* nptr )
 {
+
+	if (__phase == FUNC_GEN) {
+//		printf("XXX func scan found return\n");
+		type_t t = get_expr_type(nptr->n_return_stmt.expr);
+		if (__func_return_type == T_VOID)
+			__func_return_type = t;
+		else if (__func_return_type != t)
+			__error("oh noes, confusin function return type");
+	}
 
 	fprintf(fp,"return ");
 
