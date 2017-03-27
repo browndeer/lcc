@@ -176,6 +176,8 @@ typedef struct node_struct {
 
 		struct {
 			struct node_struct* args;
+			int err;
+			int ext;
 		} _n_print_statement;
 
 		struct {
@@ -336,7 +338,7 @@ node_t* node_block_add_stmt( node_t* block, node_t* stmt );
 
 node_t* node_create_assign_stmt( node_t* target, node_t* expr );
 
-node_t* node_create_print_stmt( node_t* arg );
+node_t* node_create_print_stmt( node_t* arg, int err, int ext );
 node_t* node_update_print_stmt( node_t* nptr, node_t* arg );
 
 node_t* node_create_input_stmt( node_t* arg );

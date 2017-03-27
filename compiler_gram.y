@@ -35,7 +35,7 @@
 %token BOTHOF EITHEROF WONOF NOT ALLOF ANYOF
 %token BOTHSAEM DIFFRINT
 %token SMOOSH MAEK APOSTROPHEZ
-%token VISIBLE GIMMEH
+%token VISIBLE GIMMEH RTM RTFM
 %token ORLY YARLY MEBBE NOWAI OIC
 %token WTF OMG OMGWTF
 %token IMINYR UPPIN NERFIN YR TIL WILE IMOUTTAYR
@@ -84,7 +84,7 @@ int yylex(void);
 %type <ival> BOTHOF EITHEROF WONOF NOT ALLOF ANYOF
 %type <ival> BOTHSAEM DIFFRINT
 %type <ival> SMOOSH MAEK APOSTROPHEZ
-%type <ival> VISIBLE GIMMEH
+%type <ival> VISIBLE GIMMEH RTM RTFM
 %type <ival> ORLY YARLY MEBBE NOWAI OIC
 %type <ival> WTF OMG OMGWTF
 %type <ival> IMINYR UPPIN NERFIN YR TIL WILE
@@ -304,7 +304,9 @@ print_statement
 	;
 
 print
-	: VISIBLE expression { $$=node_create_print_stmt($2); }
+	: VISIBLE expression { $$=node_create_print_stmt($2,0,0); }
+	| RTM expression { $$=node_create_print_stmt($2,1,0); }
+	| RTFM expression { $$=node_create_print_stmt($2,1,1); }
 	| print expression { $$=node_update_print_stmt($1,$2); }
 	;
 

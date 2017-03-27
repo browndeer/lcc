@@ -21,5 +21,11 @@ F R I IZ FOO YR A AN YR B AN YR V MKAY
 G R I IZ FOO YR C AN YR B AN YR V MKAY
 H R I IZ FOO YR B AN YR A AN YR V MKAY
 
+VISIBLE "print this on stdout"
+
+RTM "print this on stderr"
+
+RTFM "print this on stderr and exit"
+
 KTHXBYE
 

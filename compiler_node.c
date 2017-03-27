@@ -470,11 +470,13 @@ node_create_assign_stmt( node_t* target, node_t* expr )
 
 
 node_t*
-node_create_print_stmt( node_t* arg )
+node_create_print_stmt( node_t* arg, int err, int ext )
 {
 	node_t* tmp = node_create();
 	tmp->ntyp = N_PRINT_STATEMENT;
 	tmp->n_print_stmt.args = arg;
+	tmp->n_print_stmt.err = err;
+	tmp->n_print_stmt.ext = ext;
 	return(tmp);
 }
 

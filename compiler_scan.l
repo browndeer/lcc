@@ -145,6 +145,8 @@ int __linenum = 1;
 
 "VISIBLE"				{ return(VISIBLE); }
 "GIMMEH"					{ return(GIMMEH); }
+"RTM"						{ return(RTM); }
+"RTFM"					{ return(RTFM); }
 
 "O RLY?"					{ return(ORLY); }
 "YA RLY"					{ return(YARLY); }

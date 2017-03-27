@@ -819,7 +819,11 @@ void cgen_print_stmt( FILE* fp, node_t* nptr )
 	fmt = (char*)realloc(fmt,strlen(fmt)+3);
 	fmt = strcat(fmt,"\\n");
 
-	fprintf(fp,"printf(\"");
+	if (nptr->n_print_stmt.err == 1)
+		fprintf(fp,"fprintf(stderr,\"");
+	else
+		fprintf(fp,"printf(\"");
+
 	fprintf(fp,"%s",fmt);
 	fprintf(fp,"\"");
 
@@ -831,6 +835,9 @@ void cgen_print_stmt( FILE* fp, node_t* nptr )
 	}
 
 	fprintf(fp,");\n");
+
+	if (nptr->n_print_stmt.ext == 1)
+		fprintf(fp,"exit(-1);\n");
 
 	free(fmt);
 
