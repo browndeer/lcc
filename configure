@@ -4025,11 +4025,11 @@ elif test x$SHMEM = xcrayshmem; then
 	SHMEM_LIB_NAME=sma
 	# points for creativity
 elif test x$SHMEM = xarlshmem; then
-	SHMEM_CC=gcc
-	SHMEM_LIB_NAME=sma
+	SHMEM_CC=coprcc
+	SHMEM_LIB_NAME=shmem
 else
 	SHMEM_CC=gcc
-	SHMEM_LIB_NAME=sma
+	SHMEM_LIB_NAME=shmem
 fi
 
 # test for --with-shmem-include specification
