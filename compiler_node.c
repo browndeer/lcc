@@ -43,12 +43,13 @@ extern int __use_shmem;
 struct symtyp_entry {
 	int sym;
 	int typ;
+	int shared;
 	struct symtyp_entry* nxt;
 };
 
 struct symtyp_entry* symtyp_table = 0;
 
-void add_symtyp( int sym, int typ )
+void add_symtyp( int sym, int typ, int shared )
 {
 
 	struct symtyp_entry* tmp 
@@ -56,6 +57,7 @@ void add_symtyp( int sym, int typ )
 
 	tmp->sym = sym;
 	tmp->typ=typ;
+	tmp->shared=shared;
 	tmp->nxt=0;
 
 	if (!symtyp_table) {
@@ -70,7 +72,22 @@ void add_symtyp( int sym, int typ )
 
 //printf("XXX add symtyp %d %d\n",sym,typ);
 
+if (shared)
+printf("XXX added symbol is shared\n");
 }
+
+
+void mod_symtyp( int sym, int typ, int shared )
+{
+	struct symtyp_entry* p = symtyp_table;
+	for( ; p != 0; p=p->nxt ) {
+		if (p->sym == sym) {
+			if (typ) p->typ = typ;
+			if (shared) p->shared = shared;
+		}
+	}
+}
+
 
 int get_symtyp( int sym )
 {
@@ -82,6 +99,15 @@ int get_symtyp( int sym )
 //		printf("XXX get_symtyp: nxt is %p\n",p->nxt);
 	}
 	return -1;
+}
+
+int is_sym_shared( int sym )
+{
+	struct symtyp_entry* p = symtyp_table;
+	for( ; p != 0; p=p->nxt ) {
+		if (p->sym == sym) return p->shared;
+	}
+	return 0;
 }
 
 struct symtyp_entry* copy_symtyp_table( struct symtyp_entry* old_table )
@@ -397,7 +423,7 @@ node_create_decl_stmt( int sym, type_t typ, node_t* init,
 
 	if (symmetric || shared) __use_shmem = 1;
 
-	add_symtyp(sym,typ);
+	add_symtyp(sym,typ,shared);
 
 	return(tmp);
 }
@@ -413,6 +439,8 @@ node_update_decl_stmt( node_t* nptr, type_t typ, node_t* init,
 	if (shared) nptr->n_decl_stmt.shared = shared;
 
 	if (symmetric || shared) __use_shmem = 1;
+
+	mod_symtyp(nptr->n_decl_stmt.sym,typ,shared);
 
 	return(nptr);
 }
@@ -678,7 +706,7 @@ node_create_func_def( node_t* proto, node_t* block )
 	tmp->n_func_def.proto = proto;
 	tmp->n_func_def.block = block;
 
-	add_symtyp(proto->n_func_proto.sym,T_FUNC);
+	add_symtyp(proto->n_func_proto.sym,T_FUNC,0);
 
 	return(tmp);
 }

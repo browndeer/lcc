@@ -129,31 +129,39 @@ typedef long mtx_t;
 
 #define _remote(pe,hold) { _remote_pe=pe; _remote_hold=hold; }
 
-void _op_remote_seti( long long* x, long long y, int pe )
-{ shmem_longlong_p(x,y,pe); }
+void _op_remote_seti( long* x, long y, int pe )
+{ shmem_long_p(x,y,pe); }
 	
 void _op_remote_setf( float* x, float y, int pe )
 { shmem_float_p(x,y,pe); }
 
-long long _op_remote_geti( long long* x, int pe)
-{ return shmem_longlong_g(x,pe); }
+long long _op_remote_geti( long* x, int pe)
+{ return shmem_long_g(x,pe); }
 	
 float _op_remote_getf( float* x, int pe)
-{ return shmem_float_g(x,pe); }
+{
+	return shmem_float_g(x,pe); 
+}
+
+
+#define _create_lock(sym) \
+	long* _lock_##sym = (long*)shmem_malloc(shmem_n_pes()*sizeof(long)); \
+	bzero(_lock_##sym,shmem_n_pes()*sizeof(long));
+
+#define _destroy_lock(sym) do { \
+	shmem_free(_lock_##sym); \
+	} while(0)
 
 #define _trylock(x,pe) ({ \
-	void* p = shmem_ptr(&x,pe); \
-	shmem_test_lock(p); \
+	shmem_test_lock(&((x)[pe])); \
 	})
 
 #define _lock(x,pe) ({ \
-	void* p = shmem_ptr(&x,pe); \
-	shmem_set_lock(p); \
+	shmem_set_lock(&((x)[pe])); \
 	})
 
 #define _unlock(x,pe) ({ \
-	void* p = shmem_ptr(&x,pe); \
-	shmem_clear_lock(p); \
+	shmem_clear_lock(&((x)[pe])); \
 	})
 
 #else 

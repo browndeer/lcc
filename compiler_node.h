@@ -413,6 +413,7 @@ void node_fprintf(FILE* fp, node_t* nptr, int level );
 
 
 int get_symtyp(int sym);
+int is_sym_shared(int sym);
 
 #endif
 

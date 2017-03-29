@@ -81,11 +81,9 @@ void cgen_program( FILE* fp, node_t* root )
 
 	struct call_entry* p = call_list;
 	for( ; p; p=p->nxt) {
-//		printf("XXX generate instance %s\n",p->fname);
 		struct func_def_entry* q = func_def_list;
 		for( ; q; q=q->nxt) {
 			if (p->sym == q->func_def->n_func_def.proto->n_func_proto.sym) {
-//				printf("XXX found func def needed\n");
 				node_t* proto = q->func_def->n_func_def.proto;
 				node_t* block = q->func_def->n_func_def.block;
 
@@ -118,27 +116,68 @@ void cgen_program( FILE* fp, node_t* root )
 						case 'I': fprintf(fp,"int* "); break;
 						case 'F': fprintf(fp,"float* "); break;
 						case 'S': fprintf(fp,"char** "); break;
-				}
+					}
 					fprintf(fp,"%s ",symbuf+arg->n_ident.sym);
+					if (t[1]=='L') {
+						t++;
+//						fprintf(fp,",long* _lockptr_%s ",symbuf+arg->n_ident.sym);
+						fprintf(fp,",long* _lock_%s ",symbuf+arg->n_ident.sym);
+					}
 				}
 
-				fprintf(fp,")\n");
+				fprintf(fp,");\n");
 
-/*
-//				node_t* arg = proto->n_func_proto.args;
-				arg = proto->n_func_proto.args;
-//				char* t = p->typenc;
-				t = p->typenc;
+			}
+		}
+	}
+
+	p = call_list;
+	for( ; p; p=p->nxt) {
+		struct func_def_entry* q = func_def_list;
+		for( ; q; q=q->nxt) {
+			if (p->sym == q->func_def->n_func_def.proto->n_func_proto.sym) {
+				node_t* proto = q->func_def->n_func_def.proto;
+				node_t* block = q->func_def->n_func_def.block;
+
+				__func_return_type = T_VOID;
+				cgen_block(devnull,block);
+				switch(__func_return_type) {
+					case T_VOID:	
+						fprintf(fp,"void ");
+						break;
+					case T_INTEGER:	
+						fprintf(fp,"int ");
+						break;
+					case T_FLOAT:	
+						fprintf(fp,"float ");
+						break;
+				}
+
+				fprintf(fp,"%s(",p->fname);
+
+
+				node_t* arg = proto->n_func_proto.args;
+				char* t = p->typenc;
 				for( ; arg; arg=arg->next, t++ ) {
+					if (t != p->typenc)
+						fprintf(fp,", ");
 					switch(*t) {
 						case 'i': fprintf(fp,"int "); break;
 						case 'f': fprintf(fp,"float "); break;
 						case 's': fprintf(fp,"char* "); break;
+						case 'I': fprintf(fp,"int* "); break;
+						case 'F': fprintf(fp,"float* "); break;
+						case 'S': fprintf(fp,"char** "); break;
 					}
 					fprintf(fp,"%s ",symbuf+arg->n_ident.sym);
-					fprintf(fp,";\n");
+					if (t[1]=='L') {
+						t++;
+//						fprintf(fp,",long* _lockptr_%s ",symbuf+arg->n_ident.sym);
+						fprintf(fp,",long* _lock_%s ",symbuf+arg->n_ident.sym);
+					}
 				}
-*/
+
+				fprintf(fp,")\n");
 
 				cgen_block(fp,block);
 			}
@@ -381,8 +420,11 @@ void cgen_decl_stmt( FILE* fp, node_t* nptr )
 
 	}
 
-	if (nptr->n_decl_stmt.shared) 
-		fprintf(fp,"static long _lock_%s = 0;\n",name);
+	if (nptr->n_decl_stmt.shared) {
+//		fprintf(fp,"static long _lock_%s = 0;\n",name);
+//		fprintf(fp,"long* _lockptr_%s = & _lock_%s;\n",name,name);
+		fprintf(fp,"_create_lock(%s);\n",name);
+	}
 
 }
 
@@ -520,6 +562,33 @@ type_t get_expr_type( node_t* nptr )
 }
 
 
+int is_expr_shared_sym( node_t* nptr )
+{
+
+	switch(nptr->ntyp) {
+
+		case N_IDENTIFIER:
+			{
+			int s = is_sym_shared(nptr->n_ident.sym);
+			return s;
+			}
+
+		case N_INTEGER_CONSTANT:
+		case N_FLOAT_CONSTANT:
+		case N_STRING_CONSTANT:
+		case N_EXPRESSION:
+		case N_FUNC_EXPRESSION:
+			return 0;
+			break;
+
+		default:
+			__error("oh noes, bad expression");
+
+	}
+
+}
+
+
 void cgen_func_expr( FILE* fp, node_t* nptr )
 {
 
@@ -561,7 +630,13 @@ void cgen_func_expr( FILE* fp, node_t* nptr )
 				typenc = strcat(typenc,"S");
 				break;	
 			default:
+				printf("XXX %d\n",t);
 				__error("bad func argument");
+		}
+		if (is_expr_shared_sym(arg)) {
+//			printf("XXX PASSING SHARED SYMBOL\n");
+			typenc = (char*)realloc(typenc,strlen(typenc)+2);
+			typenc = strcat(typenc,"L");
 		}
 	}
 
@@ -611,6 +686,10 @@ void cgen_func_expr( FILE* fp, node_t* nptr )
 			if (arg != nptr->n_func_expr.args)
 				fprintf(fp,", ");
 			cgen_expr(fp,arg);
+			if (is_expr_shared_sym(arg)) {
+				fprintf(fp,", _lock_");
+				cgen_expr(fp,arg);
+			}
 		}
 
 		fprintf(fp,")");
@@ -836,6 +915,11 @@ void cgen_print_stmt( FILE* fp, node_t* nptr )
 
 	fprintf(fp,");\n");
 
+	if (nptr->n_print_stmt.err == 1)
+		fprintf(fp,"fflush(stderr);\n");
+	else
+		fprintf(fp,"fflush(stdout);\n");
+
 	if (nptr->n_print_stmt.ext == 1)
 		fprintf(fp,"exit(-1);\n");
 
@@ -1058,6 +1142,7 @@ void cgen_lock_stmt( FILE* fp, node_t* nptr )
 	}
 
 	fprintf(fp,"_lock_%s,",name);
+//	fprintf(fp,"*_lockptr_%s,",name);
 
 	if (remote)
 		fprintf(fp,"_remote_pe");
