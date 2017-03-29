@@ -625,6 +625,7 @@ ac_includes_default="\
 ac_subst_vars='LTLIBOBJS
 SHMEM_LIB_PATH
 SHMEM_INCLUDE_PATH
+SHMEM_CC
 ENABLE_SHMEM
 LIBOBJS
 EGREP
@@ -682,6 +683,7 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 enable_shmem
+with_shmem
 with_shmem_include
 with_shmem_lib
 '
@@ -1312,6 +1314,8 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-shmem=openshmem|crayshmem|arlshmem
+                          specify shmem implementation
   --with-shmem-include=DIR
                           specify shmem include path
   --with-shmem-lib=DIR    specify shmem lbrary path
@@ -3990,7 +3994,36 @@ if test x$enable_shmem != xno; then
       fi;
 
 
+
 ### extract with options
+
+
+# test for --with-shmem specification
+
+# Check whether --with-shmem was given.
+if test "${with_shmem+set}" = set; then :
+  withval=$with_shmem;
+			if test x$withval = xyes; then
+				as_fn_error $? "usage: --with-shmem=openshmem|crayshmem|arlshmem" "$LINENO" 5
+			else
+				SHMEM=$withval;
+			fi;
+
+else
+  SHMEM=openshmem
+
+fi
+
+
+if test x$SHMEM = xopenshmem; then
+	SHMEM_CC=oshcc
+elif test x$SHMEM = xcrayshmem; then
+	SHMEM_CC=gcc
+elif test x$SHMEM = xarlshmem; then
+	SHMEM_CC=gcc
+else
+	SHMEM_CC=gcc
+fi
 
 # test for --with-shmem-include specification
 
@@ -4024,6 +4057,7 @@ if test "${with_shmem_lib+set}" = set; then :
 			fi;
 
 fi
+
 
 
 

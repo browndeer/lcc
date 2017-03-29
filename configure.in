@@ -57,7 +57,34 @@ AC_ARG_ENABLE(shmem,
 
 SET_OPT($enable_shmem, ENABLE_SHMEM, "enable shmem")
 
+
 ### extract with options
+
+
+# test for --with-shmem specification
+AC_ARG_WITH(shmem,
+	AC_HELP_STRING(
+		[--with-shmem=openshmem|crayshmem|arlshmem],
+		[specify shmem implementation]),
+		[
+			if test x$withval = xyes; then
+				AC_MSG_ERROR([usage: --with-shmem=openshmem|crayshmem|arlshmem])
+			else
+				SHMEM=$withval;
+			fi;
+		],
+  [SHMEM=openshmem]
+	)
+
+if test x$SHMEM = xopenshmem; then
+	SHMEM_CC=oshcc
+elif test x$SHMEM = xcrayshmem; then
+	SHMEM_CC=gcc
+elif test x$SHMEM = xarlshmem; then
+	SHMEM_CC=gcc
+else
+	SHMEM_CC=gcc
+fi
 
 # test for --with-shmem-include specification
 AC_ARG_WITH(shmem-include,
@@ -96,6 +123,7 @@ AC_ARG_WITH(shmem-lib,
 	)
 
 AC_SUBST(ENABLE_SHMEM)
+AC_SUBST(SHMEM_CC)
 AC_SUBST(SHMEM_INCLUDE_PATH)
 AC_SUBST(SHMEM_LIB_PATH)
 
