@@ -625,6 +625,7 @@ ac_includes_default="\
 ac_subst_vars='LTLIBOBJS
 SHMEM_LIB_PATH
 SHMEM_INCLUDE_PATH
+SHMEM_LIB_NAME
 SHMEM_CC
 ENABLE_SHMEM
 LIBOBJS
@@ -684,8 +685,8 @@ ac_user_opts='
 enable_option_checking
 enable_shmem
 with_shmem
-with_shmem_include
-with_shmem_lib
+with_shmem_include_path
+with_shmem_lib_path
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1316,9 +1317,10 @@ Optional Packages:
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-shmem=openshmem|crayshmem|arlshmem
                           specify shmem implementation
-  --with-shmem-include=DIR
+  --with-shmem-include-path=DIR
                           specify shmem include path
-  --with-shmem-lib=DIR    specify shmem lbrary path
+  --with-shmem-lib-path=DIR
+                          specify shmem lbrary path
 
 Some influential environment variables:
   CXX         C++ compiler command
@@ -4017,21 +4019,26 @@ fi
 
 if test x$SHMEM = xopenshmem; then
 	SHMEM_CC=oshcc
+	SHMEM_LIB_NAME=openshmem
 elif test x$SHMEM = xcrayshmem; then
 	SHMEM_CC=gcc
+	SHMEM_LIB_NAME=sma
+	# points for creativity
 elif test x$SHMEM = xarlshmem; then
 	SHMEM_CC=gcc
+	SHMEM_LIB_NAME=sma
 else
 	SHMEM_CC=gcc
+	SHMEM_LIB_NAME=sma
 fi
 
 # test for --with-shmem-include specification
 
-# Check whether --with-shmem-include was given.
-if test "${with_shmem_include+set}" = set; then :
-  withval=$with_shmem_include;
+# Check whether --with-shmem-include-path was given.
+if test "${with_shmem_include_path+set}" = set; then :
+  withval=$with_shmem_include_path;
 			if test x$withval = xyes; then
-				as_fn_error $? "usage: --with-shmem-include=DIR" "$LINENO" 5
+				as_fn_error $? "usage: --with-shmem-include-path=DIR" "$LINENO" 5
 			elif ! test -e $withval/shmem.h; then
 				as_fn_error $? "bad include path, could not find shmem.h" "$LINENO" 5
 			else
@@ -4043,20 +4050,21 @@ fi
 
 # test for --with-shmem-lib specification
 
-# Check whether --with-shmem-lib was given.
-if test "${with_shmem_lib+set}" = set; then :
-  withval=$with_shmem_lib;
+# Check whether --with-shmem-lib-path was given.
+if test "${with_shmem_lib_path+set}" = set; then :
+  withval=$with_shmem_lib_path;
 			if test x$withval = xyes; then
-				as_fn_error $? "usage: --with-shmem-lib=DIR" "$LINENO" 5
-			elif test -e $withval/libshmem.so; then
+				as_fn_error $? "usage: --with-shmem-lib-path=DIR" "$LINENO" 5
+			elif test -e $withval/lib$SHMEM_LIB_NAME.so; then
 				SHMEM_LIB_PATH=$withval;
-			elif test -e $withval/libshmem.a; then
+			elif test -e $withval/lib$SHMEM_LIB_NAME.a; then
 				SHMEM_LIB_PATH=$withval;
 			else
 				as_fn_error $? "bad lib path, could not find libshmem" "$LINENO" 5
 			fi;
 
 fi
+
 
 
 

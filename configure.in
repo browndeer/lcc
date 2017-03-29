@@ -78,22 +78,27 @@ AC_ARG_WITH(shmem,
 
 if test x$SHMEM = xopenshmem; then
 	SHMEM_CC=oshcc
+	SHMEM_LIB_NAME=openshmem
 elif test x$SHMEM = xcrayshmem; then
 	SHMEM_CC=gcc
+	SHMEM_LIB_NAME=sma
+	# points for creativity
 elif test x$SHMEM = xarlshmem; then
 	SHMEM_CC=gcc
+	SHMEM_LIB_NAME=sma
 else
 	SHMEM_CC=gcc
+	SHMEM_LIB_NAME=sma
 fi
 
 # test for --with-shmem-include specification
-AC_ARG_WITH(shmem-include,
+AC_ARG_WITH(shmem-include-path,
 	AC_HELP_STRING(
-		[--with-shmem-include=DIR],
+		[--with-shmem-include-path=DIR],
 		[specify shmem include path]),
 		[
 			if test x$withval = xyes; then
-				AC_MSG_ERROR([usage: --with-shmem-include=DIR])
+				AC_MSG_ERROR([usage: --with-shmem-include-path=DIR])
 			elif ! test -e $withval/shmem.h; then
 				AC_MSG_ERROR([bad include path, could not find shmem.h])
 			else
@@ -104,16 +109,16 @@ AC_ARG_WITH(shmem-include,
 	)
 
 # test for --with-shmem-lib specification
-AC_ARG_WITH(shmem-lib,
+AC_ARG_WITH(shmem-lib-path,
 	AC_HELP_STRING(
-		[--with-shmem-lib=DIR],
+		[--with-shmem-lib-path=DIR],
 		[specify shmem lbrary path]),
 		[
 			if test x$withval = xyes; then
-				AC_MSG_ERROR([usage: --with-shmem-lib=DIR])
-			elif test -e $withval/libshmem.so; then
+				AC_MSG_ERROR([usage: --with-shmem-lib-path=DIR])
+			elif test -e $withval/lib$SHMEM_LIB_NAME.so; then
 				SHMEM_LIB_PATH=$withval;
-			elif test -e $withval/libshmem.a; then
+			elif test -e $withval/lib$SHMEM_LIB_NAME.a; then
 				SHMEM_LIB_PATH=$withval;
 			else
 				AC_MSG_ERROR([bad lib path, could not find libshmem])
@@ -124,6 +129,7 @@ AC_ARG_WITH(shmem-lib,
 
 AC_SUBST(ENABLE_SHMEM)
 AC_SUBST(SHMEM_CC)
+AC_SUBST(SHMEM_LIB_NAME)
 AC_SUBST(SHMEM_INCLUDE_PATH)
 AC_SUBST(SHMEM_LIB_PATH)
 

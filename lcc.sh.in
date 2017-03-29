@@ -151,22 +151,22 @@ main() {
 		CCFLAGS="-fhost -w -std=gnu99 -D__E32__"
 		DEFS=-DSHMEM_USE_CTIMER
 		INCS="-I/usr/local/browndeer/include -I/usr/local/browndeer/coprthr2/include"
-		INCS+="-I@SHMEM_INCLUDE_PATH@"
+		INCS+=" -I@SHMEM_INCLUDE_PATH@"
 		LIBS="-L/usr/local/browndeer/coprthr2/lib -lcoprthr2_dev -lcoprthr_hostcall -lesyscall -le-lib -L../../src/ -lm"
-		LIBS+="-L@SHMEM_LIB_PATH@ -lshmem"
+		LIBS+=" -L@SHMEM_LIB_PATH@ -l@SHMEM_LIB_NAME@"
 
 	else
 
 		LC2C=lc2c
 #		CC=gcc
 #		CCFLAGS="-w -std=gnu99"
-		CC=g++
-		CCFLAGS="-w -std=c++14 -fpermissive"
+		CC=@SHMEM_CC@
+		CCFLAGS="-w -std=gnu99 -fpermissive"
 		DEFS=
 		INCS=-I/usr/local/browndeer/include
-		INCS+="-I@SHMEM_INCLUDE_PATH@"
+		INCS+=" -I@SHMEM_INCLUDE_PATH@"
 		LIBS="-lm"
-		LIBS+="-L@SHMEM_LIB_PATH@ -lshmem"
+		LIBS+=" -L@SHMEM_LIB_PATH@ -l@SHMEM_LIB_NAME@"
 
 	fi
 
