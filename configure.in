@@ -8,11 +8,22 @@ AC_INIT([FULL-PACKAGE-NAME], [VERSION], [BUG-REPORT-ADDRESS])
 
 AC_PREFIX_DEFAULT(/usr/local/browndeer)
 
+AC_DEFUN([SET_OPT],
+      [if test x$1 != xno; then
+         echo "enabled $3"
+         $2=1
+      else
+         echo "disabled $3"
+         $2=0
+      fi;]
+)
+
+
 # Checks for programs.
 AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_CPP
-AC_PROG_INSTALL
+#AC_PROG_INSTALL
 
 # Checks for libraries.
 
@@ -44,18 +55,20 @@ AC_ARG_ENABLE(shmem,
 		enable_shmem=yes
 	)
 
+SET_OPT($enable_shmem, ENABLE_SHMEM, "enable shmem")
+
 ### extract with options
 
 # test for --with-shmem-include specification
-AC_ARG_WITH(shmem,
+AC_ARG_WITH(shmem-include,
 	AC_HELP_STRING(
 		[--with-shmem-include=DIR],
 		[specify shmem include path]),
 		[
 			if test x$withval = xyes; then
-				AC_MSG_ERROR([usage: --with-shmem=DIR])
+				AC_MSG_ERROR([usage: --with-shmem-include=DIR])
 			elif ! test -e $withval/shmem.h; then
-				AC_MSG_ERROR([bad lib path, could not find shmem.h])
+				AC_MSG_ERROR([bad include path, could not find shmem.h])
 			else
 				SHMEM_INCLUDE_PATH=$withval;
 			fi;
@@ -64,22 +77,25 @@ AC_ARG_WITH(shmem,
 	)
 
 # test for --with-shmem-lib specification
-AC_ARG_WITH(shmem,
+AC_ARG_WITH(shmem-lib,
 	AC_HELP_STRING(
 		[--with-shmem-lib=DIR],
 		[specify shmem lbrary path]),
 		[
 			if test x$withval = xyes; then
-				AC_MSG_ERROR([usage: --with-shmem=DIR])
-			elif ! test -e $withval/libshmem.so; then
-				AC_MSG_ERROR([bad lib path, could not find libshmem.so])
-			else
+				AC_MSG_ERROR([usage: --with-shmem-lib=DIR])
+			elif test -e $withval/libshmem.so; then
 				SHMEM_LIB_PATH=$withval;
+			elif test -e $withval/libshmem.a; then
+				SHMEM_LIB_PATH=$withval;
+			else
+				AC_MSG_ERROR([bad lib path, could not find libshmem])
 			fi;
 		],
   []
 	)
 
+AC_SUBST(ENABLE_SHMEM)
 AC_SUBST(SHMEM_INCLUDE_PATH)
 AC_SUBST(SHMEM_LIB_PATH)
 
