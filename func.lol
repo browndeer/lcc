@@ -1,5 +1,6 @@
 HAI 2.0
 
+HUGZ 
 
 HOW IZ I FOO YR X AN YR Y AN YR Z MKAY
 	I HAS A VAR ITZ A NUMBAR
@@ -23,7 +24,11 @@ H R I IZ FOO YR B AN YR A AN YR V MKAY
 
 VISIBLE "print this on stdout"
 
+HUGZ
+
 RTM "print this on stderr"
+
+HUGZ
 
 RTFM "print this on stderr and exit"
 
