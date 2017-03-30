@@ -623,6 +623,7 @@ ac_includes_default="\
 #endif"
 
 ac_subst_vars='LTLIBOBJS
+DEFAULT_ARCH_E32
 SHMEM_LIB_PATH
 SHMEM_INCLUDE_PATH
 SHMEM_LIB_NAME
@@ -4020,16 +4021,20 @@ fi
 if test x$SHMEM = xopenshmem; then
 	SHMEM_CC=oshcc
 	SHMEM_LIB_NAME=openshmem
+	DEFAULT_ARCH_E32=0
 elif test x$SHMEM = xcrayshmem; then
 	SHMEM_CC=gcc
 	SHMEM_LIB_NAME=sma
 	# points for creativity
+	DEFAULT_ARCH_E32=0
 elif test x$SHMEM = xarlshmem; then
 	SHMEM_CC=coprcc
 	SHMEM_LIB_NAME=shmem
+	DEFAULT_ARCH_E32=1
 else
 	SHMEM_CC=gcc
 	SHMEM_LIB_NAME=shmem
+	DEFAULT_ARCH_E32=0
 fi
 
 # test for --with-shmem-include specification
@@ -4064,6 +4069,7 @@ if test "${with_shmem_lib_path+set}" = set; then :
 			fi;
 
 fi
+
 
 
 

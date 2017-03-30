@@ -79,16 +79,20 @@ AC_ARG_WITH(shmem,
 if test x$SHMEM = xopenshmem; then
 	SHMEM_CC=oshcc
 	SHMEM_LIB_NAME=openshmem
+	DEFAULT_ARCH_E32=0
 elif test x$SHMEM = xcrayshmem; then
 	SHMEM_CC=gcc
 	SHMEM_LIB_NAME=sma
 	# points for creativity
+	DEFAULT_ARCH_E32=0
 elif test x$SHMEM = xarlshmem; then
 	SHMEM_CC=coprcc
 	SHMEM_LIB_NAME=shmem
+	DEFAULT_ARCH_E32=1
 else
 	SHMEM_CC=gcc
 	SHMEM_LIB_NAME=shmem
+	DEFAULT_ARCH_E32=0
 fi
 
 # test for --with-shmem-include specification
@@ -132,6 +136,7 @@ AC_SUBST(SHMEM_CC)
 AC_SUBST(SHMEM_LIB_NAME)
 AC_SUBST(SHMEM_INCLUDE_PATH)
 AC_SUBST(SHMEM_LIB_PATH)
+AC_SUBST(DEFAULT_ARCH_E32)
 
 AC_CONFIG_FILES([
 Makefile

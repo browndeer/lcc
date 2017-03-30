@@ -11,7 +11,7 @@
 
 verbose=0
 keep=0
-arch_e32=0
+arch_e32=@DEFAULT_ARCH_E32@
 
 version() {
 	echo "lcc version 0.7.0";
