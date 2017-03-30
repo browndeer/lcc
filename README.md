@@ -1,6 +1,6 @@
-# LOLCODE Compiler for Parallel and Distributed Computing
+# LOLCODE Compiler for Parallel & Distributed Computing
 
-This repository includes the source for the LOLCODE compiler (lcc) with extensions for parallel computing and example codes.
+This repository includes the source for the LOLCODE compiler (lcc) with extensions for parallel and distributed computing. Example codes demonstrating various features and code complexity may be found in the [./examples](./examples) directory.
 
 ## Dependencies
 
@@ -20,7 +20,7 @@ You must download and install the [COPRTHR-2 SDK](http://www.browndeertechnology
 ```
 git clone https://github.com/USArmyResearchLaboratory/openshmem-epiphany
 ```
-Clone this repository and specify, making sure to specify the install directories
+Clone this repository, making sure to specify the install directories:
 ```
 ./configure --with-shmem=arlshmem --with-shmem-include-path=[SHMEM_INC_DIR] --with-shmem-lib-path=[SHMEM_LIB_PATH]
 make
@@ -67,9 +67,13 @@ sudo make install
 
 ## Compiling LOLCODE
 
-Compiling is analogous to using a C compiler. The LOLCODE compiler, lcc, has command line options which can be seen by running `lcc --help`.  You may compile programs in this manner.  The result of the compilation is a serial program which can be executed directly or called with a parallel job launcher described below.
+Compiling is analogous to using a C compiler. The LOLCODE compiler, lcc, has command line options which can be seen by running `lcc --help`.  You may compile programs in this manner.  The result of the compilation is a serial program which can be executed directly or called with a parallel job launcher described below.  By default, the executable is named a.out.
 
 ## Running
 
 Each platform may have a different methods for launching the program across multiple processing elements.  For example, Parallella uses *coprsh*, x86 with the reference implementation of OpenSHMEM uses *oshrun*, and the Cray XC40 uses *aprun*.
 
+For example, this will launch 16 parallel processing elements on the Parallella Epiphany cores:
+```
+coprsh -np 16 ./a.out
+```
