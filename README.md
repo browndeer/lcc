@@ -7,7 +7,7 @@ This repository includes the source for the LOLCODE compiler (lcc) with extensio
 You need a C compiler and an OpenSHMEM implementation for your target platform. Three different platforms have been tested and general instructions for installing and using lcc.
 
 1. Parallella, specifically, the many-core Epiphany coprocessor
-2. x86 multi-core workstation, running Linux.
+2. x86 multi-core workstation, running Linux
 3. Cray XC40 supercomputer
 
 ## Install Instructions
@@ -18,7 +18,7 @@ Each platform has a some special configuration of compiler and OpenSHMEM library
 
 You must download and install the [COPRTHR-2 SDK](http://www.browndeertechnology.com/coprthr2_download.htm) and follow the install instructions.  Then clone the ARL OpenSHMEM for Epiphany repository and build it.
 ```
-git clone https://github.com/USArmyResearchLaboratory/openshmem-epiphany
+git clone https://github.com/USArmyResearchLab/openshmem-epiphany
 ```
 Clone this repository, making sure to specify the install directories:
 ```
