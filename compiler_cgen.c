@@ -886,7 +886,11 @@ void cgen_print_stmt( FILE* fp, node_t* nptr )
 				fmt = strcat(fmt,"%s ");
 				break;	
 			default:
-				__error("bad print argument");
+//				__error("bad print argument");
+				// right now we assume integer and hpe for the best
+				fmt = (char*)realloc(fmt,strlen(fmt)+5);
+				fmt = strcat(fmt,"%ld ");
+				break;	
 		}
 
 //		fprintf(fp,"_print_val(");
